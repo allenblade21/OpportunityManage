@@ -1,0 +1,1011 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>机汇 · 商机管理 UI 原型</title>
+<style>
+/* ========== Design Tokens ========== */
+:root{
+  --paper:#F3F6F4; --card:#FFFFFF; --colbg:#ECF1EE;
+  --line:#E2E8E4; --line-strong:#C9D4CE;
+  --ink:#1E2A25; --ink-2:#5B6B63; --ink-3:#8A9891;
+  --brand:#15685B; --brand-strong:#0E5248; --brand-soft:#E1EFEA; --brand-ink:#0F4A40;
+  --side:#0F332C; --side-ink:#D7E5DF; --side-dim:#8FA8A0;
+  --p0:#C43D2B; --p0-bg:#FAE9E5;
+  --p1:#B4620C; --p1-bg:#FAF0DF;
+  --p2:#2F6FBF; --p2-bg:#E7EFFA;
+  --p3:#6E7D76; --p3-bg:#EDF1EF;
+  --ok:#1D7A4F; --ok-bg:#E1F1E7;
+  --warn:#8A6D1A; --warn-bg:#F7EED2;
+  --danger:#C43D2B;
+  --s1:#A7B8AF; --s2:#6FA392; --s3:#4A8E7B; --s4:#2E7D68; --s5:#1A6B57; --s6:#0E5A47;
+  --shadow:0 1px 2px rgba(15,40,33,.04), 0 4px 14px rgba(15,40,33,.05);
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --paper:#0F1513; --card:#171E1B; --colbg:#121917;
+    --line:#242E2A; --line-strong:#374440;
+    --ink:#E4EAE7; --ink-2:#9FADA6; --ink-3:#6E7D76;
+    --brand:#339B84; --brand-strong:#4CB79A; --brand-soft:#17352D; --brand-ink:#7FD3BE;
+    --side:#0C1F1B; --side-ink:#C7D8D1; --side-dim:#7C948C;
+    --p0:#E36A57; --p0-bg:#3B221E;
+    --p1:#E09A47; --p1-bg:#372A17;
+    --p2:#6FA1E0; --p2-bg:#1E2A3D;
+    --p3:#96A49D; --p3-bg:#232A27;
+    --ok:#5BBE8B; --ok-bg:#1B3226;
+    --warn:#D9B75A; --warn-bg:#332B14;
+    --danger:#E36A57;
+    --s1:#4E5D56; --s2:#4E7A6C; --s3:#4E9481; --s4:#46AB91; --s5:#3FC2A0; --s6:#59D9B5;
+    --shadow:0 1px 2px rgba(0,0,0,.25), 0 4px 14px rgba(0,0,0,.22);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0F1513; --card:#171E1B; --colbg:#121917;
+  --line:#242E2A; --line-strong:#374440;
+  --ink:#E4EAE7; --ink-2:#9FADA6; --ink-3:#6E7D76;
+  --brand:#339B84; --brand-strong:#4CB79A; --brand-soft:#17352D; --brand-ink:#7FD3BE;
+  --side:#0C1F1B; --side-ink:#C7D8D1; --side-dim:#7C948C;
+  --p0:#E36A57; --p0-bg:#3B221E;
+  --p1:#E09A47; --p1-bg:#372A17;
+  --p2:#6FA1E0; --p2-bg:#1E2A3D;
+  --p3:#96A49D; --p3-bg:#232A27;
+  --ok:#5BBE8B; --ok-bg:#1B3226;
+  --warn:#D9B75A; --warn-bg:#332B14;
+  --danger:#E36A57;
+  --s1:#4E5D56; --s2:#4E7A6C; --s3:#4E9481; --s4:#46AB91; --s5:#3FC2A0; --s6:#59D9B5;
+  --shadow:0 1px 2px rgba(0,0,0,.25), 0 4px 14px rgba(0,0,0,.22);
+}
+:root[data-theme="light"]{
+  --paper:#F3F6F4; --card:#FFFFFF; --colbg:#ECF1EE;
+  --line:#E2E8E4; --line-strong:#C9D4CE;
+  --ink:#1E2A25; --ink-2:#5B6B63; --ink-3:#8A9891;
+  --brand:#15685B; --brand-strong:#0E5248; --brand-soft:#E1EFEA; --brand-ink:#0F4A40;
+  --side:#0F332C; --side-ink:#D7E5DF; --side-dim:#8FA8A0;
+  --p0:#C43D2B; --p0-bg:#FAE9E5;
+  --p1:#B4620C; --p1-bg:#FAF0DF;
+  --p2:#2F6FBF; --p2-bg:#E7EFFA;
+  --p3:#6E7D76; --p3-bg:#EDF1EF;
+  --ok:#1D7A4F; --ok-bg:#E1F1E7;
+  --warn:#8A6D1A; --warn-bg:#F7EED2;
+  --danger:#C43D2B;
+  --s1:#A7B8AF; --s2:#6FA392; --s3:#4A8E7B; --s4:#2E7D68; --s5:#1A6B57; --s6:#0E5A47;
+  --shadow:0 1px 2px rgba(15,40,33,.04), 0 4px 14px rgba(15,40,33,.05);
+}
+
+/* ========== Base ========== */
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font:14px/1.6 -apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans CJK SC",sans-serif;
+  background:var(--paper); color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+}
+button{font-family:inherit}
+a{color:inherit;text-decoration:none}
+.num{font-family:ui-monospace,"SF Mono","Cascadia Mono",Menlo,Consolas,monospace;font-variant-numeric:tabular-nums;letter-spacing:-.2px}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px;border-radius:4px}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+
+.ic{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+/* ========== Layout ========== */
+.app{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:224px;flex:none;background:var(--side);color:var(--side-ink);display:flex;flex-direction:column;padding:20px 12px 12px}
+.logo{display:flex;align-items:center;gap:10px;padding:0 10px 20px}
+.logo .mark{width:30px;height:30px;flex:none;border-radius:8px;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center}
+.logo b{font-size:17px;color:#fff;letter-spacing:1px;display:block;line-height:1.2}
+.logo small{display:block;font-size:10px;color:var(--side-dim);letter-spacing:1.2px}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav a{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;color:var(--side-dim);cursor:pointer;font-size:13.5px}
+.nav a:hover{background:rgba(255,255,255,.06);color:var(--side-ink)}
+.nav a.active{background:rgba(255,255,255,.11);color:#fff;font-weight:600}
+.nav .cnt{margin-left:auto;font-size:11px;background:rgba(255,255,255,.13);border-radius:99px;padding:1px 7px;font-weight:500}
+.side-foot{margin-top:auto;display:flex;flex-direction:column;gap:2px}
+.side-foot .user{display:flex;align-items:center;gap:9px;padding:12px 10px 4px;margin-top:8px;border-top:1px solid rgba(255,255,255,.09)}
+.side-foot .uav{width:28px;height:28px;border-radius:50%;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex:none}
+.side-foot .un{font-size:13px;color:#fff}
+.side-foot .ue{font-size:11px;color:var(--side-dim)}
+
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
+.topbar{height:56px;flex:none;display:flex;align-items:center;gap:12px;padding:0 24px;background:var(--card);border-bottom:1px solid var(--line)}
+.search{flex:0 1 400px;display:flex;align-items:center;gap:8px;background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:6px 12px;color:var(--ink-3);font-size:13px;cursor:pointer}
+.search .kbd{margin-left:auto;font-size:11px;border:1px solid var(--line-strong);border-radius:4px;padding:0 5px;background:var(--card);color:var(--ink-3)}
+.topspace{flex:1}
+.content{flex:1;overflow-y:auto;padding:22px 24px 40px}
+
+/* ========== Buttons / Chips ========== */
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line-strong);background:var(--card);color:var(--ink);border-radius:8px;padding:7px 14px;font-size:13px;cursor:pointer}
+.btn:hover{border-color:var(--ink-3)}
+.btn-pri{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:600}
+.btn-pri:hover{background:var(--brand-strong);border-color:var(--brand-strong)}
+.btn-sm{padding:4px 10px;font-size:12px;border-radius:7px}
+.btn-ic{padding:7px}
+.lnk{font-size:12.5px;color:var(--brand);cursor:pointer;font-weight:600;background:none;border:none;padding:0}
+.lnk:hover{text-decoration:underline}
+
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:600;border-radius:99px;padding:1.5px 9px;white-space:nowrap;line-height:1.7}
+.p0{color:var(--p0);background:var(--p0-bg)}
+.p1{color:var(--p1);background:var(--p1-bg)}
+.p2{color:var(--p2);background:var(--p2-bg)}
+.p3{color:var(--p3);background:var(--p3-bg)}
+.c-ok{color:var(--ok);background:var(--ok-bg)}
+.c-warn{color:var(--warn);background:var(--warn-bg)}
+.c-hold{color:var(--ink-3);background:var(--p3-bg)}
+.c-brand{color:var(--brand-ink);background:var(--brand-soft)}
+
+.st{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink-2);white-space:nowrap}
+.dot{width:8px;height:8px;border-radius:50%;flex:none}
+.bg-s1{background:var(--s1)} .bg-s2{background:var(--s2)} .bg-s3{background:var(--s3)}
+.bg-s4{background:var(--s4)} .bg-s5{background:var(--s5)} .bg-s6{background:var(--s6)}
+.tag{font-size:11px;color:var(--ink-2);background:var(--paper);border:1px solid var(--line);border-radius:5px;padding:1px 7px;white-space:nowrap}
+.typ{font-size:11px;color:var(--ink-2);border:1px solid var(--line);border-radius:4px;padding:0 5px;flex:none;line-height:1.7}
+.av{width:20px;height:20px;border-radius:50%;background:var(--brand-soft);color:var(--brand-ink);font-size:10.5px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;flex:none}
+.av-lg{width:34px;height:34px;font-size:13px}
+
+/* ========== Page scaffolding ========== */
+.page{display:none}
+.page.visible{display:block;animation:fadein .18s ease}
+@keyframes fadein{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.phead{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.phead h1{font-size:21px;font-weight:700;letter-spacing:.3px}
+.phead .sub{color:var(--ink-2);font-size:13px}
+.spacer{flex:1}
+.sel{border:1px solid var(--line);background:var(--card);border-radius:7px;padding:5px 8px;font-size:12.5px;color:var(--ink-2);font-family:inherit}
+
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+.panel-h{display:flex;align-items:center;gap:8px;padding:13px 16px;border-bottom:1px solid var(--line);font-size:14px;font-weight:600}
+.panel-h .n{color:var(--ink-3);font-weight:500;font-size:12.5px}
+.panel-h .more{margin-left:auto}
+.panel-b{padding:6px 16px 12px}
+
+.seg{display:inline-flex;background:var(--colbg);border:1px solid var(--line);border-radius:8px;padding:2px}
+.seg button{border:0;background:transparent;padding:5px 13px;font-size:12.5px;border-radius:6px;color:var(--ink-2);cursor:pointer}
+.seg button.active{background:var(--card);color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.1)}
+
+/* ========== Dashboard ========== */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:14px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:14px 16px}
+.kpi .k{font-size:12.5px;color:var(--ink-2)}
+.kpi .v{font-size:26px;font-weight:700;margin-top:4px;line-height:1.25}
+.kpi .d{font-size:12px;color:var(--ink-3);margin-top:3px}
+.kpi .good{color:var(--ok)} .kpi .bad{color:var(--danger)}
+.grid2{display:grid;grid-template-columns:1.55fr 1fr;gap:14px;margin-bottom:14px}
+.grid2b{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+
+.fr{display:grid;grid-template-columns:66px 1fr 120px;align-items:center;gap:12px;padding:7px 0}
+.fr .fl{font-size:12.5px;color:var(--ink-2);text-align:right;white-space:nowrap}
+.fr .bar{height:22px;border-radius:4px;min-width:6px}
+.fr .fv{font-size:12px;color:var(--ink-2);white-space:nowrap}
+.funnel-note{font-size:11.5px;color:var(--ink-3);padding:8px 0 4px;border-top:1px dashed var(--line);margin-top:6px}
+
+.fu{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px dashed var(--line)}
+.panel-b .fu:last-child,.panel-b .orow:last-child,.panel-b .ccard:last-child{border-bottom:0}
+.check{width:17px;height:17px;border:1.5px solid var(--line-strong);border-radius:5px;flex:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;background:var(--card);color:transparent;padding:0}
+.check .ic{width:11px;height:11px;stroke-width:3}
+.fu.done .check{background:var(--brand);border-color:var(--brand);color:#fff}
+.fu .fx{min-width:0}
+.fu .t{font-size:13.5px;line-height:1.5}
+.fu.done .t{text-decoration:line-through;color:var(--ink-3)}
+.fu .meta{font-size:12px;color:var(--ink-3);margin-top:1px}
+.fu .end{margin-left:auto;display:flex;align-items:center;gap:8px;flex:none}
+.fu .due{font-size:12px;color:var(--ink-2);white-space:nowrap}
+.fu.late .due{color:var(--danger);font-weight:600}
+
+.orow{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px dashed var(--line);cursor:pointer}
+.orow .ox{min-width:0}
+.orow .t{font-size:13.5px;font-weight:600}
+.orow .meta{font-size:12px;color:var(--ink-3)}
+.orow .end{margin-left:auto;text-align:right;flex:none}
+.orow .amt{font-size:13px;font-weight:600;color:var(--brand-ink)}
+.orow .wr{font-size:11.5px;color:var(--ink-3)}
+
+.tl{position:relative;padding:4px 0 4px 22px}
+.tl:before{content:"";position:absolute;left:5px;top:12px;bottom:12px;width:2px;background:var(--line)}
+.tli{position:relative;padding:7px 0}
+.tli:before{content:"";position:absolute;left:-21px;top:13px;width:8px;height:8px;border-radius:50%;background:var(--card);border:2px solid var(--ink-3)}
+.tli.b:before{border-color:var(--brand);background:var(--brand-soft)}
+.tli .tt{font-size:13px;line-height:1.55}
+.tli .tt b{font-weight:600}
+.tli .tm{font-size:11.5px;color:var(--ink-3);margin-top:1px}
+
+/* ========== Kanban ========== */
+.board{display:flex;gap:12px;overflow-x:auto;padding-bottom:10px;align-items:flex-start}
+.col{width:250px;flex:none;background:var(--colbg);border:1px solid var(--line);border-radius:10px;padding:10px 10px 4px}
+.col-h{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;padding:2px 4px 10px}
+.col-h .n{color:var(--ink-3);font-weight:500;font-size:12px}
+.col-h .sum{margin-left:auto;font-size:11.5px;color:var(--ink-3);font-weight:500}
+.kcard{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:11px 12px;margin-bottom:9px;cursor:pointer;box-shadow:var(--shadow);transition:border-color .15s}
+.kcard:hover{border-color:var(--brand)}
+.kcard .co{font-size:11.5px;color:var(--ink-3)}
+.kcard .ti{font-size:13.5px;font-weight:600;margin:2px 0 6px;line-height:1.45}
+.kcard .amt{font-size:13px;font-weight:600;color:var(--brand-ink)}
+.kcard .wr{color:var(--ink-3);font-weight:400;font-size:11.5px}
+.kcard .ft{display:flex;align-items:center;gap:6px;margin-top:9px}
+.kcard .nx{margin-left:auto;font-size:11px;color:var(--ink-3);display:inline-flex;align-items:center;gap:4px}
+.kcard .nx .ic{width:12px;height:12px}
+.kcard .nx.late{color:var(--danger);font-weight:600}
+.board-hint{font-size:11.5px;color:var(--ink-3);margin-top:2px}
+
+/* ========== Table ========== */
+.twrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{font-size:12px;color:var(--ink-3);font-weight:500;text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:11px 14px;border-bottom:1px solid var(--line);white-space:nowrap;vertical-align:middle}
+tbody tr:last-child td{border-bottom:0}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:var(--paper)}
+td .b{font-weight:600}
+td .sub{font-size:12px;color:var(--ink-3)}
+td.stale{color:var(--danger);font-weight:600}
+.namecell{display:flex;align-items:center;gap:9px}
+
+/* ========== Opportunity detail ========== */
+.back{display:inline-flex;align-items:center;gap:5px;color:var(--ink-2);font-size:13px;cursor:pointer;margin-bottom:12px;background:none;border:none}
+.back:hover{color:var(--brand)}
+.dhead{padding:18px 20px 16px}
+.dtop{display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap}
+.dtop .co{font-size:12.5px;color:var(--ink-3)}
+.dtop h1{font-size:20px;font-weight:700;margin:1px 0 7px}
+.dtop .chips{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.dact{margin-left:auto;display:flex;gap:8px;flex:none}
+.stepper{display:flex;margin-top:22px}
+.step{flex:1;position:relative;text-align:center;font-size:12px;color:var(--ink-3);padding-top:18px;cursor:pointer}
+.step:before{content:"";position:absolute;top:5px;left:0;right:0;height:3px;background:var(--line)}
+.step:first-child:before{left:50%}
+.step:last-child:before{right:50%}
+.step .sd{position:absolute;top:0;left:50%;transform:translateX(-50%);width:13px;height:13px;border-radius:50%;background:var(--card);border:3px solid var(--line-strong)}
+.step.done:before{background:var(--s3)}
+.step.done .sd{border-color:var(--s3);background:var(--s3)}
+.step.cur:before{background:var(--s5)}
+.step.cur .sd{border-color:var(--s5)}
+.step.cur{color:var(--brand-ink);font-weight:700}
+.facts{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-top:20px;padding-top:16px;border-top:1px solid var(--line)}
+.fact .fk{font-size:11.5px;color:var(--ink-3)}
+.fact .fv{font-size:13.5px;font-weight:600;margin-top:2px}
+.dgrid{display:grid;grid-template-columns:1.5fr 1fr;gap:14px;margin-top:14px;align-items:start}
+.dcol{display:flex;flex-direction:column;gap:14px}
+
+.ccard{display:flex;gap:10px;padding:10px 0;border-bottom:1px dashed var(--line);align-items:flex-start}
+.ccard .cx{min-width:0}
+.ccard .cn{font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.ccard .ct{font-size:12px;color:var(--ink-3);margin-top:1px}
+.ccard .cc{font-size:12px;color:var(--ink-2);margin-top:3px;display:flex;gap:12px;flex-wrap:wrap}
+.ccard .cc span{display:inline-flex;align-items:center;gap:4px}
+.ccard .cc .ic{width:12px;height:12px}
+
+/* ========== Ideas ========== */
+.quick{display:flex;gap:10px;margin-bottom:16px}
+.quick input{flex:1;border:1px solid var(--line-strong);border-radius:9px;padding:9px 14px;font-size:13.5px;font-family:inherit;background:var(--card);color:var(--ink)}
+.quick input::placeholder{color:var(--ink-3)}
+.quick input:focus{border-color:var(--brand);outline:none;box-shadow:0 0 0 3px var(--brand-soft)}
+.iwrap{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:14px}
+.icard{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.icard .ih{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.icard h3{font-size:14.5px;line-height:1.5}
+.icard p{font-size:12.5px;color:var(--ink-2);line-height:1.7}
+.icard .im{font-size:11.5px;color:var(--ink-3);display:flex;gap:10px;flex-wrap:wrap}
+.icard .ia{display:flex;gap:14px;border-top:1px solid var(--line);padding-top:10px;margin-top:2px}
+
+/* ========== Follow-up groups ========== */
+.fgroup{margin-bottom:14px}
+.fgroup .panel-h.late-h{color:var(--danger)}
+
+/* ========== Modal / Toast ========== */
+.backdrop{position:fixed;inset:0;background:rgba(10,22,18,.46);display:none;align-items:flex-start;justify-content:center;padding:6vh 16px;z-index:50;overflow-y:auto}
+.backdrop.open{display:flex}
+.modal{background:var(--card);border:1px solid var(--line);border-radius:14px;width:640px;max-width:100%;box-shadow:0 22px 60px rgba(0,0,0,.28)}
+.m-h{padding:14px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px}
+.m-h b{font-size:15px}
+.m-b{padding:18px 20px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.field{display:flex;flex-direction:column;gap:5px}
+.field.full{grid-column:1/-1}
+.field label{font-size:12px;color:var(--ink-2);font-weight:600}
+.field label em{color:var(--danger);font-style:normal}
+.field input,.field select,.field textarea{border:1px solid var(--line-strong);border-radius:8px;padding:8px 10px;font-size:13px;font-family:inherit;background:var(--card);color:var(--ink)}
+.field textarea{resize:vertical;min-height:64px}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--brand);outline:none;box-shadow:0 0 0 3px var(--brand-soft)}
+.m-f{padding:14px 20px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:10px}
+.toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%) translateY(10px);background:var(--ink);color:var(--paper);font-size:13px;padding:10px 18px;border-radius:9px;opacity:0;pointer-events:none;transition:opacity .22s,transform .22s;z-index:60;box-shadow:0 8px 24px rgba(0,0,0,.25);max-width:90vw}
+.toast.show{opacity:1;transform:translateX(-50%)}
+
+/* ========== Responsive ========== */
+@media (max-width:920px){
+  .app{flex-direction:column;height:auto;min-height:100vh;overflow:visible}
+  .sidebar{width:100%;flex-direction:row;align-items:center;padding:10px 12px;gap:6px;overflow-x:auto}
+  .logo{padding:0 8px 0 0}
+  .logo small{display:none}
+  .nav{flex-direction:row;gap:2px}
+  .nav a{padding:7px 10px;white-space:nowrap}
+  .nav .cnt{display:none}
+  .side-foot{margin:0 0 0 auto;flex-direction:row}
+  .side-foot .user{border-top:none;padding:0;margin:0}
+  .side-foot .ux{display:none}
+  .main{overflow:visible}
+  .content{overflow:visible;padding:16px 14px 40px}
+  .topbar{padding:0 14px}
+  .search{flex:1}
+  .kpis{grid-template-columns:1fr 1fr}
+  .grid2,.grid2b,.dgrid{grid-template-columns:1fr}
+  .facts{grid-template-columns:repeat(3,1fr)}
+  .step{font-size:11px}
+}
+@media (max-width:560px){
+  .facts{grid-template-columns:repeat(2,1fr)}
+  .m-b{grid-template-columns:1fr}
+  .phead h1{font-size:18px}
+}
+</style>
+</head>
+<body>
+
+<!-- SVG icon sprite -->
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 9.5V21h14V9.5"/></symbol>
+  <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r=".8"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9.5" cy="8" r="3.6"/><path d="M3.5 20c.5-3.4 3-5.2 6-5.2s5.5 1.8 6 5.2"/><path d="M16 4.8a3.6 3.6 0 0 1 0 6.6"/><path d="M17.8 15.2c1.7.7 2.8 2.3 3.2 4.8"/></symbol>
+  <symbol id="i-check2" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="3.5"/><path d="M8 12.2l2.8 2.8L16.5 9"/></symbol>
+  <symbol id="i-bulb" viewBox="0 0 24 24"><path d="M9.5 18.5h5"/><path d="M10.5 21.5h3"/><path d="M12 2.8a6.2 6.2 0 0 0-4.1 10.8c.9.8 1.6 1.7 1.6 2.9h5c0-1.2.7-2.1 1.6-2.9A6.2 6.2 0 0 0 12 2.8z"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.6-4.6"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.2 5.2l2.1 2.1M16.7 16.7l2.1 2.1M18.8 5.2l-2.1 2.1M7.3 16.7l-2.1 2.1"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><path d="M5 3h4l2 5-2.4 1.6a12.5 12.5 0 0 0 5.8 5.8L16 13l5 2v4a2 2 0 0 1-2 2A16.5 16.5 0 0 1 3 5a2 2 0 0 1 2-2z"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 7.5L12 13l8.5-5.5"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5c-1 0-2-.2-2.9-.5L4 21l1.5-4.1A8.5 8.5 0 1 1 21 11.5z"/></symbol>
+  <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9.5h18M8 3v4M16 3v4"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M4.5 12.5l5 5L19.5 6.5"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/></symbol>
+</svg>
+
+<div class="app">
+
+  <!-- ======= 侧边导航 ======= -->
+  <aside class="sidebar">
+    <div class="logo">
+      <span class="mark">
+        <svg class="ic" style="stroke:#6FD0B4;width:17px;height:17px" viewBox="0 0 24 24"><path d="M4 19V13M10 19V9M16 19V5M20 19H3"/></svg>
+      </span>
+      <span><b>机汇</b><small>OPPORTUNITY MANAGE</small></span>
+    </div>
+    <nav class="nav" aria-label="主导航">
+      <a href="#" data-page="dashboard" class="active"><svg class="ic"><use href="#i-home"/></svg>工作台</a>
+      <a href="#" data-page="opps"><svg class="ic"><use href="#i-target"/></svg>商机<span class="cnt">8</span></a>
+      <a href="#" data-page="contacts"><svg class="ic"><use href="#i-users"/></svg>联系人<span class="cnt">9</span></a>
+      <a href="#" data-page="followups"><svg class="ic"><use href="#i-check2"/></svg>跟进项<span class="cnt">8</span></a>
+      <a href="#" data-page="ideas"><svg class="ic"><use href="#i-bulb"/></svg>想法<span class="cnt">4</span></a>
+    </nav>
+    <div class="side-foot">
+      <nav class="nav">
+        <a href="#" data-toast="原型演示:设置页(自定义阶段 / 标签 / 提醒规则)规划在 V1 版本"><svg class="ic"><use href="#i-gear"/></svg>设置</a>
+      </nav>
+      <div class="user">
+        <span class="uav">A</span>
+        <span class="ux"><span class="un">Allen</span><br><span class="ue">个人版</span></span>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <!-- ======= 顶栏 ======= -->
+    <header class="topbar">
+      <div class="search" data-toast="原型演示:全局搜索商机 / 联系人 / 跟进 / 想法" role="button" tabindex="0">
+        <svg class="ic"><use href="#i-search"/></svg>搜索商机、联系人、跟进、想法…<span class="kbd">⌘K</span>
+      </div>
+      <div class="topspace"></div>
+      <button class="btn btn-pri" id="btnQuickAdd"><svg class="ic"><use href="#i-plus"/></svg>快速新建</button>
+    </header>
+
+    <main class="content" id="content">
+
+      <!-- ================= 工作台 ================= -->
+      <section class="page visible" id="page-dashboard">
+        <div class="phead">
+          <h1>工作台</h1>
+          <span class="sub">7 月 22 日 周三 · 你好,Allen,今天有 2 条跟进待处理,1 条已逾期</span>
+        </div>
+
+        <div class="kpis">
+          <div class="kpi"><div class="k">进行中商机</div><div class="v num">7</div><div class="d"><span class="good">+2</span> 较上月</div></div>
+          <div class="kpi"><div class="k">在途总金额</div><div class="v num">¥333<span style="font-size:15px">万</span></div><div class="d">按赢率加权 <span class="num">¥152万</span></div></div>
+          <div class="kpi"><div class="k">本周待跟进</div><div class="v num">6</div><div class="d"><span class="bad">1 条已逾期</span></div></div>
+          <div class="kpi"><div class="k">本季赢单率</div><div class="v num">38%</div><div class="d">已赢 3 单 · <span class="num">¥86万</span></div></div>
+        </div>
+
+        <div class="grid2">
+          <div class="panel">
+            <div class="panel-h">商机漏斗<span class="n">按阶段 · 金额</span>
+              <button class="lnk more" data-page-link="opps">进入商机看板</button>
+            </div>
+            <div class="panel-b">
+              <div class="fr"><span class="fl">线索</span><div><div class="bar bg-s1" style="width:52%"></div></div><span class="fv">2 单 · <span class="num">¥70万</span></span></div>
+              <div class="fr"><span class="fl">初步接触</span><div><div class="bar bg-s2" style="width:21%"></div></div><span class="fv">1 单 · <span class="num">¥28万</span></span></div>
+              <div class="fr"><span class="fl">需求确认</span><div><div class="bar bg-s3" style="width:100%"></div></div><span class="fv">2 单 · <span class="num">¥135万</span></span></div>
+              <div class="fr"><span class="fl">方案报价</span><div><div class="bar bg-s4" style="width:24%"></div></div><span class="fv">1 单 · <span class="num">¥32万</span></span></div>
+              <div class="fr"><span class="fl">谈判</span><div><div class="bar bg-s5" style="width:50%"></div></div><span class="fv">1 单 · <span class="num">¥68万</span></span></div>
+              <div class="funnel-note">色带由浅至深 = 离成交越近 · 本月已赢单:绿洲零售 ¥15万</div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-h">今日跟进<span class="n">2 项 · 1 逾期</span>
+              <button class="lnk more" data-page-link="followups">全部跟进</button>
+            </div>
+            <div class="panel-b">
+              <div class="fu late">
+                <button class="check" aria-label="完成跟进"><svg class="ic"><use href="#i-check"/></svg></button>
+                <div class="fx"><div class="t">发送续约报价对比表</div><div class="meta">蓝湖数字 · 王建国</div></div>
+                <div class="end"><span class="chip p1">P1</span><span class="due num">昨天 18:00</span></div>
+              </div>
+              <div class="fu">
+                <button class="check" aria-label="完成跟进"><svg class="ic"><use href="#i-check"/></svg></button>
+                <div class="fx"><div class="t">电话回访张伟明,确认商务条款</div><div class="meta">星辰科技 · ERP 系统升级项目</div></div>
+                <div class="end"><span class="chip p0">P0</span><span class="due num">14:00</span></div>
+              </div>
+              <div class="fu">
+                <button class="check" aria-label="完成跟进"><svg class="ic"><use href="#i-check"/></svg></button>
+                <div class="fx"><div class="t">拜访赵鹏,汇报数据中台方案初稿</div><div class="meta">华信银行 · 数据中台咨询</div></div>
+                <div class="end"><span class="chip p0">P0</span><span class="due num">16:30</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid2b">
+          <div class="panel">
+            <div class="panel-h">高优先级商机<span class="n">P0 / P1</span>
+              <button class="lnk more" data-page-link="opps">全部商机</button>
+            </div>
+            <div class="panel-b">
+              <div class="orow" data-open="detail">
+                <span class="dot bg-s5"></span>
+                <div class="ox"><div class="t">星辰科技 · ERP 系统升级项目</div><div class="meta">谈判 · 下次跟进:今天 14:00</div></div>
+                <div class="end"><div class="amt num">¥68万</div><div class="wr">赢率 70% · <span class="chip p0">P0</span></div></div>
+              </div>
+              <div class="orow" data-open="detail">
+                <span class="dot bg-s3"></span>
+                <div class="ox"><div class="t">华信银行 · 数据中台咨询</div><div class="meta">需求确认 · 下次跟进:今天 16:30</div></div>
+                <div class="end"><div class="amt num">¥90万</div><div class="wr">赢率 45% · <span class="chip p0">P0</span></div></div>
+              </div>
+              <div class="orow" data-open="detail">
+                <span class="dot bg-s4"></span>
+                <div class="ox"><div class="t">蓝湖数字 · 年度数据服务续约</div><div class="meta">方案报价 · <span style="color:var(--danger)">跟进已逾期</span></div></div>
+                <div class="end"><div class="amt num">¥32万</div><div class="wr">赢率 60% · <span class="chip p1">P1</span></div></div>
+              </div>
+              <div class="orow" data-open="detail">
+                <span class="dot bg-s3"></span>
+                <div class="ox"><div class="t">恒远制造 · MES 试点项目</div><div class="meta">需求确认 · 下次跟进:07-24</div></div>
+                <div class="end"><div class="amt num">¥45万</div><div class="wr">赢率 40% · <span class="chip p1">P1</span></div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-h">最近动态</div>
+            <div class="panel-b">
+              <div class="tl">
+                <div class="tli"><div class="tt">新增想法:<b>制造业「MES+设备监控」打包联合方案</b></div><div class="tm num">今天 09:12</div></div>
+                <div class="tli b"><div class="tt"><b>星辰科技</b> 阶段变更:方案报价 → <b>谈判</b></div><div class="tm num">昨天 17:40</div></div>
+                <div class="tli"><div class="tt">完成跟进:现场演示 DEMO(恒远制造 · 陈思远)</div><div class="tm num">昨天 15:02</div></div>
+                <div class="tli"><div class="tt">新增联系人:<b>赵鹏</b>(华信银行 · 科技处副处长)</div><div class="tm num">07-19</div></div>
+                <div class="tli b"><div class="tt"><b>绿洲零售 · 会员系统改造</b> 标记为赢单 <span class="chip c-ok">¥15万</span></div><div class="tm num">07-18</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 商机(看板 / 列表) ================= -->
+      <section class="page" id="page-opps">
+        <div class="phead">
+          <h1>商机</h1><span class="sub">8 个 · 在途 <span class="num">¥333万</span></span>
+          <span class="spacer"></span>
+          <div class="seg" role="tablist">
+            <button id="segBoard" class="active">看板</button>
+            <button id="segList">列表</button>
+          </div>
+          <select class="sel"><option>全部阶段</option><option>线索</option><option>初步接触</option><option>需求确认</option><option>方案报价</option><option>谈判</option><option>赢单</option></select>
+          <select class="sel"><option>全部优先级</option><option>P0 紧急</option><option>P1 重要</option><option>P2 普通</option><option>P3 观察</option></select>
+          <select class="sel"><option>按优先级排序</option><option>按金额排序</option><option>按预计成交排序</option></select>
+          <button class="btn btn-pri" data-modal="new"><svg class="ic"><use href="#i-plus"/></svg>新建商机</button>
+        </div>
+
+        <!-- 看板视图 -->
+        <div id="viewBoard">
+          <div class="board">
+            <div class="col">
+              <div class="col-h"><span class="dot bg-s1"></span>线索<span class="n">2</span><span class="sum num">¥70万</span></div>
+              <div class="kcard" data-open="detail">
+                <div class="co">泰合能源</div><div class="ti">设备监控系统</div>
+                <div class="amt num">¥52万 <span class="wr">· 赢率 10%</span></div>
+                <div class="ft"><span class="chip p2">P2</span><span class="nx"><svg class="ic"><use href="#i-clock"/></svg><span class="num">07-24</span></span><span class="av" title="孙梅">孙</span></div>
+              </div>
+              <div class="kcard" data-open="detail">
+                <div class="co">中港物流</div><div class="ti">仓储管理系统</div>
+                <div class="amt num">¥18万 <span class="wr">· 赢率 10%</span></div>
+                <div class="ft"><span class="chip p3">P3</span><span class="nx"><svg class="ic"><use href="#i-clock"/></svg><span class="num">07-29</span></span><span class="av" title="吴国栋">吴</span></div>
+              </div>
+            </div>
+            <div class="col">
+              <div class="col-h"><span class="dot bg-s2"></span>初步接触<span class="n">1</span><span class="sum num">¥28万</span></div>
+              <div class="kcard" data-open="detail">
+                <div class="co">云帆教育</div><div class="ti">在线课堂平台定制</div>
+                <div class="amt num">¥28万 <span class="wr">· 赢率 20%</span></div>
+                <div class="ft"><span class="chip p2">P2</span><span class="nx"><svg class="ic"><use href="#i-clock"/></svg><span class="num">07-23</span></span><span class="av" title="刘雨婷">刘</span></div>
+              </div>
+            </div>
+            <div class="col">
+              <div class="col-h"><span class="dot bg-s3"></span>需求确认<span class="n">2</span><span class="sum num">¥135万</span></div>
+              <div class="kcard" data-open="detail">
+                <div class="co">华信银行</div><div class="ti">数据中台咨询</div>
+                <div class="amt num">¥90万 <span class="wr">· 赢率 45%</span></div>
+                <div class="ft"><span class="chip p0">P0</span><span class="nx"><svg class="ic"><use href="#i-clock"/></svg><span class="num">今天 16:30</span></span><span class="av" title="赵鹏">赵</span></div>
+              </div>
+              <div class="kcard" data-open="detail">
+                <div class="co">恒远制造</div><div class="ti">MES 试点项目</div>
+                <div class="amt num">¥45万 <span class="wr">· 赢率 40%</span></div>
+                <div class="ft"><span class="chip p1">P1</span><span class="nx"><svg class="ic"><use href="#i-clock"/></svg><span class="num">07-24</span></span><span class="av" title="陈思远">陈</span></div>
+              </div>
+            </div>
+            <div class="col">
+              <div class="col-h"><span class="dot bg-s4"></span>方案报价<span class="n">1</span><span class="sum num">¥32万</span></div>
+              <div class="kcard" data-open="detail">
+                <div class="co">蓝湖数字</div><div class="ti">年度数据服务续约</div>
+                <div class="amt num">¥32万 <span class="wr">· 赢率 60%</span></div>
+                <div class="ft"><span class="chip p1">P1</span><span class="nx late"><svg class="ic"><use href="#i-clock"/></svg>已逾期</span><span class="av" title="王建国">王</span></div>
+              </div>
+            </div>
+            <div class="col">
+              <div class="col-h"><span class="dot bg-s5"></span>谈判<span class="n">1</span><span class="sum num">¥68万</span></div>
+              <div class="kcard" data-open="detail">
+                <div class="co">星辰科技</div><div class="ti">ERP 系统升级项目</div>
+                <div class="amt num">¥68万 <span class="wr">· 赢率 70%</span></div>
+                <div class="ft"><span class="chip p0">P0</span><span class="nx"><svg class="ic"><use href="#i-clock"/></svg><span class="num">今天 14:00</span></span><span class="av" title="张伟明">张</span></div>
+              </div>
+            </div>
+            <div class="col">
+              <div class="col-h"><span class="dot bg-s6"></span>赢单<span class="n">1</span><span class="sum num">¥15万</span></div>
+              <div class="kcard" data-open="detail">
+                <div class="co">绿洲零售</div><div class="ti">会员系统改造</div>
+                <div class="amt num">¥15万</div>
+                <div class="ft"><span class="chip c-ok">已赢单 · 07-18</span><span class="av" style="margin-left:auto" title="郑楠">郑</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="board-hint">拖拽卡片即可变更阶段(正式版功能),阶段变更自动写入商机时间线</div>
+        </div>
+
+        <!-- 列表视图 -->
+        <div id="viewList" class="panel" style="display:none">
+          <div class="twrap">
+            <table>
+              <thead><tr><th>商机</th><th>客户</th><th>阶段</th><th>优先级</th><th>金额</th><th>赢率</th><th>下次跟进</th><th>预计成交</th><th>主要联系人</th></tr></thead>
+              <tbody>
+                <tr data-open="detail"><td class="b">ERP 系统升级项目</td><td>星辰科技</td><td><span class="st"><span class="dot bg-s5"></span>谈判</span></td><td><span class="chip p0">P0 紧急</span></td><td class="num b">¥68万</td><td class="num">70%</td><td class="num">今天 14:00</td><td class="num">08-15</td><td>张伟明</td></tr>
+                <tr data-open="detail"><td class="b">数据中台咨询</td><td>华信银行</td><td><span class="st"><span class="dot bg-s3"></span>需求确认</span></td><td><span class="chip p0">P0 紧急</span></td><td class="num b">¥90万</td><td class="num">45%</td><td class="num">今天 16:30</td><td class="num">09-30</td><td>赵鹏</td></tr>
+                <tr data-open="detail"><td class="b">年度数据服务续约</td><td>蓝湖数字</td><td><span class="st"><span class="dot bg-s4"></span>方案报价</span></td><td><span class="chip p1">P1 重要</span></td><td class="num b">¥32万</td><td class="num">60%</td><td class="num" style="color:var(--danger);font-weight:600">已逾期</td><td class="num">08-30</td><td>王建国</td></tr>
+                <tr data-open="detail"><td class="b">MES 试点项目</td><td>恒远制造</td><td><span class="st"><span class="dot bg-s3"></span>需求确认</span></td><td><span class="chip p1">P1 重要</span></td><td class="num b">¥45万</td><td class="num">40%</td><td class="num">07-24</td><td class="num">09-20</td><td>陈思远</td></tr>
+                <tr data-open="detail"><td class="b">在线课堂平台定制</td><td>云帆教育</td><td><span class="st"><span class="dot bg-s2"></span>初步接触</span></td><td><span class="chip p2">P2 普通</span></td><td class="num b">¥28万</td><td class="num">20%</td><td class="num">07-23</td><td class="num">10-15</td><td>刘雨婷</td></tr>
+                <tr data-open="detail"><td class="b">设备监控系统</td><td>泰合能源</td><td><span class="st"><span class="dot bg-s1"></span>线索</span></td><td><span class="chip p2">P2 普通</span></td><td class="num b">¥52万</td><td class="num">10%</td><td class="num">07-24</td><td class="num">10-30</td><td>孙梅</td></tr>
+                <tr data-open="detail"><td class="b">仓储管理系统</td><td>中港物流</td><td><span class="st"><span class="dot bg-s1"></span>线索</span></td><td><span class="chip p3">P3 观察</span></td><td class="num b">¥18万</td><td class="num">10%</td><td class="num">07-29</td><td class="num">11-15</td><td>吴国栋</td></tr>
+                <tr data-open="detail"><td class="b">会员系统改造</td><td>绿洲零售</td><td><span class="st"><span class="dot bg-s6"></span>赢单</span></td><td><span class="chip c-ok">已成交</span></td><td class="num b">¥15万</td><td class="num">100%</td><td class="num">—</td><td class="num">07-18</td><td>郑楠</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 商机详情 ================= -->
+      <section class="page" id="page-detail">
+        <button class="back" data-page-link="opps"><svg class="ic"><use href="#i-back"/></svg>返回商机列表</button>
+
+        <div class="panel dhead">
+          <div class="dtop">
+            <div>
+              <div class="co">星辰科技 · 来源:老客户转介绍</div>
+              <h1>ERP 系统升级项目</h1>
+              <div class="chips">
+                <span class="chip p0">P0 紧急</span>
+                <span class="tag">ERP</span><span class="tag">华东区</span><span class="tag">老客户</span>
+              </div>
+            </div>
+            <div class="dact">
+              <button class="btn btn-pri btn-sm" data-toast="原型演示:新建跟进将默认关联本商机与主要联系人"><svg class="ic"><use href="#i-plus"/></svg>新建跟进</button>
+              <button class="btn btn-sm" data-toast="原型演示:编辑商机">编辑</button>
+              <button class="btn btn-sm btn-ic" data-toast="原型演示:更多操作(标记赢单 / 输单 / 转移 / 删除)" aria-label="更多操作"><svg class="ic"><use href="#i-more"/></svg></button>
+            </div>
+          </div>
+
+          <div class="stepper" data-toast="原型演示:点击阶段即可推进,变更自动写入时间线">
+            <div class="step done"><span class="sd"></span>线索</div>
+            <div class="step done"><span class="sd"></span>初步接触</div>
+            <div class="step done"><span class="sd"></span>需求确认</div>
+            <div class="step done"><span class="sd"></span>方案报价</div>
+            <div class="step cur"><span class="sd"></span>谈判</div>
+            <div class="step"><span class="sd"></span>赢单</div>
+          </div>
+
+          <div class="facts">
+            <div class="fact"><div class="fk">预计金额</div><div class="fv num">¥680,000</div></div>
+            <div class="fact"><div class="fk">赢率</div><div class="fv num">70%</div></div>
+            <div class="fact"><div class="fk">预计成交</div><div class="fv num">2026-08-15</div></div>
+            <div class="fact"><div class="fk">负责人</div><div class="fv">Allen</div></div>
+            <div class="fact"><div class="fk">创建时间</div><div class="fv num">2026-07-05</div></div>
+            <div class="fact"><div class="fk">最近活动</div><div class="fv num">昨天 17:40</div></div>
+          </div>
+        </div>
+
+        <div class="dgrid">
+          <div class="dcol">
+            <div class="panel">
+              <div class="panel-h">待办跟进<span class="n">2</span>
+                <button class="lnk more" data-toast="原型演示:新建跟进将默认关联本商机">+ 添加跟进</button>
+              </div>
+              <div class="panel-b">
+                <div class="fu">
+                  <button class="check" aria-label="完成跟进"><svg class="ic"><use href="#i-check"/></svg></button>
+                  <div class="fx"><div class="t">电话回访张伟明,确认商务条款</div><div class="meta"><span class="typ">电话</span> 张伟明</div></div>
+                  <div class="end"><span class="chip p0">P0</span><span class="due num">今天 14:00</span></div>
+                </div>
+                <div class="fu">
+                  <button class="check" aria-label="完成跟进"><svg class="ic"><use href="#i-check"/></svg></button>
+                  <div class="fx"><div class="t">发送合同草案给李晓芸审核</div><div class="meta"><span class="typ">邮件</span> 李晓芸</div></div>
+                  <div class="end"><span class="chip p1">P1</span><span class="due num">07-25</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-h">跟进时间线</div>
+              <div class="panel-b">
+                <div class="tl">
+                  <div class="tli b"><div class="tt">阶段变更:方案报价 → <b>谈判</b></div><div class="tm num">昨天 17:40</div></div>
+                  <div class="tli"><div class="tt">完成跟进(电话):与张伟明确认技术方案细节,对<b>分期付款</b>方案有兴趣</div><div class="tm num">昨天 16:20</div></div>
+                  <div class="tli"><div class="tt">新增想法:提供分期付款方案,降低决策门槛</div><div class="tm num">07-15</div></div>
+                  <div class="tli"><div class="tt">完成跟进(拜访):现场演示 DEMO,李晓芸参加,重点关注售后响应时效</div><div class="tm num">07-12</div></div>
+                  <div class="tli b"><div class="tt">创建商机(来源:老客户转介绍)</div><div class="tm num">07-05</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="dcol">
+            <div class="panel">
+              <div class="panel-h">联系人<span class="n">2</span>
+                <button class="lnk more" data-toast="原型演示:从通讯录选择或新建联系人">+ 添加</button>
+              </div>
+              <div class="panel-b">
+                <div class="ccard">
+                  <span class="av av-lg">张</span>
+                  <div class="cx">
+                    <div class="cn">张伟明 <span class="chip c-brand">主要联系人</span><span class="chip p2">决策者</span></div>
+                    <div class="ct">CTO</div>
+                    <div class="cc"><span><svg class="ic"><use href="#i-phone"/></svg><span class="num">138-0101-2233</span></span><span><svg class="ic"><use href="#i-clock"/></svg>最近联系:昨天</span></div>
+                  </div>
+                </div>
+                <div class="ccard">
+                  <span class="av av-lg">李</span>
+                  <div class="cx">
+                    <div class="cn">李晓芸 <span class="chip c-warn">把关者</span></div>
+                    <div class="ct">采购经理</div>
+                    <div class="cc"><span><svg class="ic"><use href="#i-phone"/></svg><span class="num">137-2244-5566</span></span><span><svg class="ic"><use href="#i-clock"/></svg>最近联系:07-12</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-h">关联想法<span class="n">1</span></div>
+              <div class="panel-b">
+                <div style="padding:10px 0">
+                  <div class="ih" style="display:flex;gap:6px;margin-bottom:6px"><span class="chip c-warn">待评估</span><span class="chip p1">P1</span></div>
+                  <div style="font-size:13.5px;font-weight:600">提供分期付款方案,降低决策门槛</div>
+                  <p style="font-size:12.5px;color:var(--ink-2);margin:4px 0 10px">首付 40% + 上线验收 40% + 一年质保金 20%,配合财务出资金占用测算。</p>
+                  <button class="lnk" data-toast="原型演示:想法一键转为跟进项,自动带出商机与内容">转为跟进项 →</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 联系人 ================= -->
+      <section class="page" id="page-contacts">
+        <div class="phead">
+          <h1>联系人</h1><span class="sub">9 位 · 覆盖 8 家客户</span>
+          <span class="spacer"></span>
+          <select class="sel"><option>全部公司</option><option>星辰科技</option><option>蓝湖数字</option><option>恒远制造</option><option>华信银行</option></select>
+          <select class="sel"><option>全部角色</option><option>决策者</option><option>影响者</option><option>使用者</option><option>把关者</option></select>
+          <button class="btn btn-pri" data-toast="原型演示:新建联系人"><svg class="ic"><use href="#i-plus"/></svg>新建联系人</button>
+        </div>
+        <div class="panel">
+          <div class="twrap">
+            <table>
+              <thead><tr><th>姓名</th><th>公司 · 职位</th><th>角色</th><th>电话</th><th>微信</th><th>关联商机</th><th>最近联系</th></tr></thead>
+              <tbody>
+                <tr data-toast="原型演示:联系人详情含基本信息、参与的商机与相关跟进记录"><td><span class="namecell"><span class="av">张</span><span class="b">张伟明</span></span></td><td>星辰科技 <span class="sub">· CTO</span></td><td><span class="chip p2">决策者</span></td><td class="num">138-0101-2233</td><td class="num">zwm_tech</td><td><span class="sub">ERP 系统升级项目</span></td><td class="num">昨天</td></tr>
+                <tr data-toast="原型演示:联系人详情含基本信息、参与的商机与相关跟进记录"><td><span class="namecell"><span class="av">李</span><span class="b">李晓芸</span></span></td><td>星辰科技 <span class="sub">· 采购经理</span></td><td><span class="chip c-warn">把关者</span></td><td class="num">137-2244-5566</td><td class="num">lixy0522</td><td><span class="sub">ERP 系统升级项目</span></td><td class="num">07-12</td></tr>
+                <tr data-toast="原型演示:联系人详情含基本信息、参与的商机与相关跟进记录"><td><span class="namecell"><span class="av">王</span><span class="b">王建国</span></span></td><td>蓝湖数字 <span class="sub">· 运营总监</span></td><td><span class="chip p2">决策者</span></td><td class="num">136-8899-0011</td><td class="num">wangjg_lh</td><td><span class="sub">年度数据服务续约</span></td><td class="num">07-15</td></tr>
+                <tr data-toast="原型演示:联系人详情含基本信息、参与的商机与相关跟进记录"><td><span class="namecell"><span class="av">陈</span><span class="b">陈思远</span></span></td><td>恒远制造 <span class="sub">· IT 经理</span></td><td><span class="chip p3">影响者</span></td><td class="num">135-6677-8899</td><td class="num">chensy_hy</td><td><span class="sub">MES 试点项目</span></td><td class="num">昨天</td></tr>
+                <tr data-toast="原型演示:联系人详情含基本信息、参与的商机与相关跟进记录"><td><span class="namecell"><span class="av">周</span><span class="b">周凯</span></span></td><td>恒远制造 <span class="sub">· 生产总监</span></td><td><span class="chip p2">决策者</span></td><td class="num">139-0011-2233</td><td class="num">—</td><td><span class="sub">MES 试点项目</span></td><td class="num">07-10</td></tr>
+                <tr data-toast="原型演示:联系人详情含基本信息、参与的商机与相关跟进记录"><td><span class="namecell"><span class="av">刘</span><span class="b">刘雨婷</span></span></td><td>云帆教育 <span class="sub">· 产品负责人</span></td><td><span class="chip c-ok">使用者</span></td><td class="num">188-5566-7788</td><td class="num">yuting_liu</td><td><span class="sub">在线课堂平台定制</span></td><td class="num">07-16</td></tr>
+                <tr data-toast="原型演示:联系人详情含基本信息、参与的商机与相关跟进记录"><td><span class="namecell"><span class="av">赵</span><span class="b">赵鹏</span></span></td><td>华信银行 <span class="sub">· 科技处副处长</span></td><td><span class="chip p2">决策者</span></td><td class="num">186-3344-5566</td><td class="num">—</td><td><span class="sub">数据中台咨询</span></td><td class="num">07-19</td></tr>
+                <tr data-toast="原型演示:联系人详情含基本信息、参与的商机与相关跟进记录"><td><span class="namecell"><span class="av">孙</span><span class="b">孙梅</span></span></td><td>泰合能源 <span class="sub">· 信息中心主任</span></td><td><span class="chip p3">影响者</span></td><td class="num">158-2233-4455</td><td class="num">sunmei_th</td><td><span class="sub">设备监控系统</span></td><td class="num">07-08</td></tr>
+                <tr data-toast="原型演示:联系人详情含基本信息、参与的商机与相关跟进记录"><td><span class="namecell"><span class="av">吴</span><span class="b">吴国栋</span></span></td><td>中港物流 <span class="sub">· 运营副总</span></td><td><span class="chip p2">决策者</span></td><td class="num">133-9900-1122</td><td class="num">—</td><td><span class="sub">仓储管理系统</span></td><td class="num stale" style="color:var(--danger);font-weight:600">06-30 · 22天未联系</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 跟进项 ================= -->
+      <section class="page" id="page-followups">
+        <div class="phead">
+          <h1>跟进项</h1><span class="sub">8 条待办 · 1 条已逾期</span>
+          <span class="spacer"></span>
+          <div class="seg"><button class="active">列表</button><button data-toast="原型演示:日历视图规划在 V1 版本">日历</button></div>
+          <select class="sel"><option>全部类型</option><option>电话</option><option>拜访</option><option>邮件</option><option>微信</option><option>会议</option></select>
+          <select class="sel"><option>全部优先级</option><option>P0</option><option>P1</option><option>P2</option><option>P3</option></select>
+          <button class="btn btn-pri" data-toast="原型演示:新建跟进(可关联商机与联系人,设置提醒)"><svg class="ic"><use href="#i-plus"/></svg>新建跟进</button>
+        </div>
+
+        <div class="fgroup panel">
+          <div class="panel-h late-h">已逾期<span class="n">1</span></div>
+          <div class="panel-b">
+            <div class="fu late">
+              <button class="check" aria-label="完成跟进"><svg class="ic"><use href="#i-check"/></svg></button>
+              <div class="fx"><div class="t">发送续约报价对比表</div><div class="meta"><span class="typ">邮件</span> 蓝湖数字 · 年度数据服务续约 · 王建国</div></div>
+              <div class="end"><span class="chip p1">P1</span><span class="due num">昨天 18:00</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="fgroup panel">
+          <div class="panel-h">今天<span class="n">2</span></div>
+          <div class="panel-b">
+            <div class="fu">
+              <button class="check" aria-label="完成跟进"><svg class="ic"><use href="#i-check"/></svg></button>
+              <div class="fx"><div class="t">电话回访张伟明,确认商务条款</div><div class="meta"><span class="typ">电话</span> 星辰科技 · ERP 系统升级项目</div></div>
+              <div class="end"><span class="chip p0">P0</span><span class="due num">14:00</span></div>
+            </div>
+            <div class="fu">
+              <button class="check" aria-label="完成跟进"><svg class="ic"><use href="#i-check"/></svg></button>
+              <div class="fx"><div class="t">拜访赵鹏,汇报数据中台方案初稿</div><div class="meta"><span class="typ">拜访</span> 华信银行 · 数据中台咨询</div></div>
+              <div class="end"><span class="chip p0">P0</span><span class="due num">16:30</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="fgroup panel">
+          <div class="panel-h">本周<span class="n">3</span></div>
+          <div class="panel-b">
+            <div class="fu">
+              <button class="check" aria-label="完成跟进"><svg class="ic"><use href="#i-check"/></svg></button>
+              <div class="fx"><div class="t">微信跟进刘雨婷,收集试用反馈</div><div class="meta"><span class="typ">微信</span> 云帆教育 · 在线课堂平台定制</div></div>
+              <div class="end"><span class="chip p2">P2</span><span class="due num">07-23</span></div>
+            </div>
+            <div class="fu">
+              <button class="check" aria-label="完成跟进"><svg class="ic"><use href="#i-check"/></svg></button>
+              <div class="fx"><div class="t">整理恒远制造需求调研纪要,发陈思远确认</div><div class="meta"><span class="typ">其他</span> 恒远制造 · MES 试点项目</div></div>
+              <div class="end"><span class="chip p1">P1</span><span class="due num">07-24</span></div>
+            </div>
+            <div class="fu">
+              <button class="check" aria-label="完成跟进"><svg class="ic"><use href="#i-check"/></svg></button>
+              <div class="fx"><div class="t">电话约孙梅,确定初次拜访时间</div><div class="meta"><span class="typ">电话</span> 泰合能源 · 设备监控系统</div></div>
+              <div class="end"><span class="chip p2">P2</span><span class="due num">07-24</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="fgroup panel">
+          <div class="panel-h">以后<span class="n">2</span></div>
+          <div class="panel-b">
+            <div class="fu">
+              <button class="check" aria-label="完成跟进"><svg class="ic"><use href="#i-check"/></svg></button>
+              <div class="fx"><div class="t">中港物流仓储方案预沟通</div><div class="meta"><span class="typ">电话</span> 中港物流 · 仓储管理系统 · 吴国栋</div></div>
+              <div class="end"><span class="chip p3">P3</span><span class="due num">07-29</span></div>
+            </div>
+            <div class="fu">
+              <button class="check" aria-label="完成跟进"><svg class="ic"><use href="#i-check"/></svg></button>
+              <div class="fx"><div class="t">给绿洲零售发送验收报告与回款提醒</div><div class="meta"><span class="typ">邮件</span> 绿洲零售 · 会员系统改造(已赢单)</div></div>
+              <div class="end"><span class="chip p2">P2</span><span class="due num">08-01</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 想法 ================= -->
+      <section class="page" id="page-ideas">
+        <div class="phead">
+          <h1>想法</h1><span class="sub">4 条 · 2 条待评估,建议每周回顾一次</span>
+          <span class="spacer"></span>
+          <select class="sel"><option>全部状态</option><option>待评估</option><option>已采纳</option><option>已搁置</option></select>
+          <select class="sel"><option>全部优先级</option><option>P0</option><option>P1</option><option>P2</option><option>P3</option></select>
+        </div>
+
+        <div class="quick">
+          <input id="ideaInput" placeholder="随手记一个想法…(客户随口提的需求、打法灵感,先记下来再整理)">
+          <button class="btn btn-pri" id="ideaSave">记下来</button>
+        </div>
+
+        <div class="iwrap">
+          <div class="icard">
+            <div class="ih"><span class="chip c-warn">待评估</span><span class="chip p1">P1</span></div>
+            <h3>制造业「MES + 设备监控」打包联合方案</h3>
+            <p>恒远与泰合的需求高度互补,打包报价可以拉高客单价,也能把泰合从线索直接推进到方案阶段。先做一页纸方案试探两边反应。</p>
+            <div class="im"><span>关联:恒远制造 / 泰合能源</span><span class="num">今天 09:12</span></div>
+            <div class="ia">
+              <button class="lnk" data-toast="原型演示:转为跟进项,自动带出关联商机与内容">转为跟进项</button>
+              <button class="lnk" data-toast="原型演示:升级为独立商机,带出客户与描述">升级为商机</button>
+            </div>
+          </div>
+
+          <div class="icard">
+            <div class="ih"><span class="chip c-ok">已采纳</span><span class="chip p2">P2</span></div>
+            <h3>续约客户提前 60 天自动开启关怀跟进</h3>
+            <p>蓝湖续约差点被竞品截胡,教训:续约商机要提前两个月建跟进节奏(近况回访 → 价值复盘 → 报价)。</p>
+            <div class="im"><span>已生成跟进模板</span><span class="num">07-16</span></div>
+            <div class="ia">
+              <button class="lnk" data-toast="原型演示:查看由此想法生成的跟进项">查看关联跟进 →</button>
+            </div>
+          </div>
+
+          <div class="icard">
+            <div class="ih"><span class="chip c-warn">待评估</span><span class="chip p2">P2</span></div>
+            <h3>华信银行项目沉淀为金融行业标杆案例包</h3>
+            <p>若数据中台咨询落地,整理成「方案书 + ROI 测算 + 客户证言」案例包,金融线获客可以直接复用。</p>
+            <div class="im"><span>关联:华信银行 · 数据中台咨询</span><span class="num">07-19</span></div>
+            <div class="ia">
+              <button class="lnk" data-toast="原型演示:转为跟进项">转为跟进项</button>
+            </div>
+          </div>
+
+          <div class="icard">
+            <div class="ih"><span class="chip c-hold">已搁置</span><span class="chip p3">P3</span></div>
+            <h3>教育行业 Q4 采购窗口 · 目标客户清单</h3>
+            <p>教育客户预算集中在 Q4 释放,9 月前整理 20 家目标校/机构清单。当前优先级低,10 月前再启动。</p>
+            <div class="im"><span>独立想法(未关联商机)</span><span class="num">07-02</span></div>
+            <div class="ia">
+              <button class="lnk" data-toast="原型演示:重新激活想法">重新激活</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<!-- ================= 快速新建弹窗 ================= -->
+<div class="backdrop" id="backdrop">
+  <div class="modal" role="dialog" aria-modal="true" aria-label="快速新建">
+    <div class="m-h">
+      <b>快速新建</b>
+      <div class="seg" id="modalSeg">
+        <button class="active">商机</button><button>联系人</button><button>跟进项</button><button>想法</button>
+      </div>
+    </div>
+    <div class="m-b">
+      <div class="field full"><label>商机名称 <em>*</em></label><input placeholder="如:ERP 系统升级项目" id="firstField"></div>
+      <div class="field"><label>客户公司 <em>*</em></label><input placeholder="如:星辰科技"></div>
+      <div class="field"><label>预计金额(元)</label><input class="num" placeholder="680000" inputmode="numeric"></div>
+      <div class="field"><label>阶段</label><select><option>线索</option><option>初步接触</option><option>需求确认</option><option>方案报价</option><option>谈判</option></select></div>
+      <div class="field"><label>优先级</label><select><option>P2 普通(默认)</option><option>P0 紧急</option><option>P1 重要</option><option>P3 观察</option></select></div>
+      <div class="field"><label>预计成交日期</label><input type="date"></div>
+      <div class="field"><label>主要联系人</label><input placeholder="搜索或新建联系人"></div>
+      <div class="field full"><label>备注</label><textarea placeholder="背景信息、客户诉求…"></textarea></div>
+    </div>
+    <div class="m-f">
+      <button class="btn" id="modalCancel">取消</button>
+      <button class="btn btn-pri" id="modalSave">保存</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(function(){
+  var $ = function(s){ return document.querySelector(s); };
+  var $$ = function(s){ return Array.prototype.slice.call(document.querySelectorAll(s)); };
+
+  /* ---- Toast ---- */
+  var toastTimer = null;
+  function toast(msg){
+    var t = $('#toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 2600);
+  }
+
+  /* ---- 页面切换 ---- */
+  var navMap = { detail: 'opps' };           // 详情页归属「商机」导航
+  function show(page){
+    $$('.page').forEach(function(p){ p.classList.remove('visible'); });
+    var el = $('#page-' + page);
+    if(!el) return;
+    el.classList.add('visible');
+    var navKey = navMap[page] || page;
+    $$('.nav a[data-page]').forEach(function(a){
+      a.classList.toggle('active', a.dataset.page === navKey);
+    });
+    $('#content').scrollTop = 0;
+    if(window.innerWidth <= 920) window.scrollTo(0, 0);
+  }
+  $$('.nav a[data-page]').forEach(function(a){
+    a.addEventListener('click', function(e){ e.preventDefault(); show(a.dataset.page); });
+  });
+
+  /* ---- 事件委托:跳转 / 打开详情 / 提示 / 勾选完成 ---- */
+  document.addEventListener('click', function(e){
+    var link = e.target.closest('[data-page-link]');
+    if(link){ show(link.dataset.pageLink); return; }
+
+    var check = e.target.closest('.check');
+    if(check){
+      var fu = check.closest('.fu');
+      fu.classList.toggle('done');
+      if(fu.classList.contains('done')){
+        toast('已完成跟进 · 正式版将引导填写结果并创建下一次跟进');
+      }
+      return;
+    }
+
+    var opener = e.target.closest('[data-open="detail"]');
+    if(opener){ show('detail'); return; }
+
+    var toasty = e.target.closest('[data-toast]');
+    if(toasty){ toast(toasty.dataset.toast); return; }
+  });
+
+  /* ---- 商机:看板 / 列表切换 ---- */
+  function setView(board){
+    $('#viewBoard').style.display = board ? '' : 'none';
+    $('#viewList').style.display = board ? 'none' : '';
+    $('#segBoard').classList.toggle('active', board);
+    $('#segList').classList.toggle('active', !board);
+  }
+  $('#segBoard').addEventListener('click', function(){ setView(true); });
+  $('#segList').addEventListener('click', function(){ setView(false); });
+
+  /* ---- 快速新建弹窗 ---- */
+  var backdrop = $('#backdrop');
+  function openModal(){
+    backdrop.classList.add('open');
+    setTimeout(function(){ $('#firstField').focus(); }, 50);
+  }
+  function closeModal(){ backdrop.classList.remove('open'); }
+  $('#btnQuickAdd').addEventListener('click', openModal);
+  $$('[data-modal="new"]').forEach(function(b){ b.addEventListener('click', openModal); });
+  $('#modalCancel').addEventListener('click', closeModal);
+  backdrop.addEventListener('mousedown', function(e){ if(e.target === backdrop) closeModal(); });
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape' && backdrop.classList.contains('open')) closeModal();
+  });
+  $('#modalSave').addEventListener('click', function(){
+    closeModal();
+    toast('商机已创建(原型演示,数据未真实保存)');
+  });
+  $$('#modalSeg button').forEach(function(b, i){
+    b.addEventListener('click', function(){
+      if(i === 0) return;
+      toast('原型演示:此处以「新建商机」为例,四类对象均支持快速新建');
+    });
+  });
+
+  /* ---- 想法快速记录 ---- */
+  function saveIdea(){
+    var input = $('#ideaInput');
+    if(!input.value.trim()){ toast('先写点什么,再记下来'); input.focus(); return; }
+    input.value = '';
+    toast('想法已记录,默认进入「待评估」· 每周回顾时再整理');
+  }
+  $('#ideaSave').addEventListener('click', saveIdea);
+  $('#ideaInput').addEventListener('keydown', function(e){ if(e.key === 'Enter') saveIdea(); });
+})();
+</script>
+</body>
+</html>
