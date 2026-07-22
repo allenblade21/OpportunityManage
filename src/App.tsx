@@ -1,0 +1,244 @@
+import { useEffect, useRef, useState } from 'react';
+import { useStore, type Page } from './store';
+import { groupFollowUps, isActiveStage } from './utils';
+import { Icon } from './components/ui';
+import {
+  NewContactModal, NewFollowUpModal, NewIdeaModal, NewOpportunityModal,
+} from './components/modals';
+import { Dashboard } from './pages/Dashboard';
+import { Opportunities } from './pages/Opportunities';
+import { OpportunityDetail } from './pages/OpportunityDetail';
+import { Contacts } from './pages/Contacts';
+import { FollowUps } from './pages/FollowUps';
+import { Ideas } from './pages/Ideas';
+
+const NAV: { page: Page; icon: string; label: string }[] = [
+  { page: 'dashboard', icon: 'home', label: '工作台' },
+  { page: 'opps', icon: 'target', label: '商机' },
+  { page: 'contacts', icon: 'users', label: '联系人' },
+  { page: 'followups', icon: 'check2', label: '跟进项' },
+  { page: 'ideas', icon: 'bulb', label: '想法' },
+];
+
+function Sidebar() {
+  const { page, go, opportunities, contacts, followUps, ideas, toast, resetDemoData } = useStore();
+
+  const counts: Record<string, number> = {
+    opps: opportunities.filter((o) => isActiveStage(o.stage)).length,
+    contacts: contacts.length,
+    followups: followUps.filter((f) => f.status === 'open').length,
+    ideas: ideas.filter((i) => i.status !== 'shelved').length,
+  };
+  const activeKey = page === 'detail' ? 'opps' : page;
+
+  return (
+    <aside className="sidebar">
+      <div className="logo">
+        <span className="mark">
+          <Icon name="logo" style={{ stroke: '#6FD0B4', width: 17, height: 17 }} />
+        </span>
+        <span>
+          <b>机汇</b>
+          <small>OPPORTUNITY MANAGE</small>
+        </span>
+      </div>
+      <nav className="nav" aria-label="主导航">
+        {NAV.map((n) => (
+          <a
+            key={n.page}
+            href="#"
+            className={activeKey === n.page ? 'active' : ''}
+            onClick={(e) => {
+              e.preventDefault();
+              go(n.page);
+            }}
+          >
+            <Icon name={n.icon} />
+            {n.label}
+            {counts[n.page] !== undefined && <span className="cnt">{counts[n.page]}</span>}
+          </a>
+        ))}
+      </nav>
+      <div className="side-foot">
+        <nav className="nav">
+          <a
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              toast('设置页(自定义阶段 / 标签 / 提醒规则)规划于 V1');
+            }}
+          >
+            <Icon name="gear" />设置
+          </a>
+          <a
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              if (window.confirm('将清空当前数据并恢复演示数据,确定?')) resetDemoData();
+            }}
+          >
+            <Icon name="more" />重置演示数据
+          </a>
+        </nav>
+        <div className="user">
+          <span className="uav">我</span>
+          <span className="ux">
+            <span className="un">我的商机</span>
+            <br />
+            <span className="ue">本地单机版 · 数据存于浏览器</span>
+          </span>
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+function QuickAdd() {
+  const openModal = useStore((s) => s.openModal);
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, [open]);
+
+  const items = [
+    { label: '商机', icon: 'target', run: () => openModal({ kind: 'opp' }) },
+    { label: '联系人', icon: 'users', run: () => openModal({ kind: 'contact' }) },
+    { label: '跟进项', icon: 'check2', run: () => openModal({ kind: 'followup' }) },
+    { label: '想法', icon: 'bulb', run: () => openModal({ kind: 'idea' }) },
+  ];
+
+  return (
+    <div className="qwrap" ref={ref}>
+      <button className="btn btn-pri" onClick={() => setOpen((v) => !v)} aria-expanded={open}>
+        <Icon name="plus" />快速新建
+      </button>
+      {open && (
+        <div className="qmenu" role="menu">
+          {items.map((it) => (
+            <button
+              key={it.label}
+              role="menuitem"
+              onClick={() => {
+                setOpen(false);
+                it.run();
+              }}
+            >
+              <Icon name={it.icon} />新建{it.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Topbar() {
+  const toast = useStore((s) => s.toast);
+  const followUps = useStore((s) => s.followUps);
+  const overdue = groupFollowUps(followUps).overdue.length;
+  const go = useStore((s) => s.go);
+
+  return (
+    <header className="topbar">
+      <div
+        className="search"
+        role="button"
+        tabIndex={0}
+        onClick={() => toast('全局搜索规划于下一迭代')}
+        onKeyDown={(e) => e.key === 'Enter' && toast('全局搜索规划于下一迭代')}
+      >
+        <Icon name="search" />
+        搜索商机、联系人、跟进、想法…
+        <span className="kbd">⌘K</span>
+      </div>
+      <div className="topspace" />
+      {overdue > 0 && (
+        <button className="overdue-pill" onClick={() => go('followups')}>
+          {overdue} 条逾期跟进
+        </button>
+      )}
+      <QuickAdd />
+    </header>
+  );
+}
+
+function Toast() {
+  const toastState = useStore((s) => s.toastState);
+  const clearToast = useStore((s) => s.clearToast);
+
+  useEffect(() => {
+    if (!toastState) return;
+    const t = setTimeout(clearToast, toastState.action ? 5200 : 2600);
+    return () => clearTimeout(t);
+  }, [toastState, clearToast]);
+
+  return (
+    <div className={`toast${toastState ? ' show' : ''}`} role="status">
+      <span>{toastState?.msg}</span>
+      {toastState?.action && (
+        <button
+          onClick={() => {
+            toastState.action?.run();
+            clearToast();
+          }}
+        >
+          {toastState.action.label}
+        </button>
+      )}
+    </div>
+  );
+}
+
+export default function App() {
+  const page = useStore((s) => s.page);
+  const modal = useStore((s) => s.modal);
+  const contentRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    contentRef.current?.scrollTo(0, 0);
+    if (window.innerWidth <= 920) window.scrollTo(0, 0);
+  }, [page]);
+
+  return (
+    <div className="app">
+      <Sidebar />
+      <div className="main">
+        <Topbar />
+        <main className="content" ref={contentRef}>
+          {page === 'dashboard' && <Dashboard />}
+          {page === 'opps' && <Opportunities />}
+          {page === 'detail' && <OpportunityDetail />}
+          {page === 'contacts' && <Contacts />}
+          {page === 'followups' && <FollowUps />}
+          {page === 'ideas' && <Ideas />}
+        </main>
+      </div>
+
+      {modal?.kind === 'opp' && (
+        <NewOpportunityModal
+          presetName={modal.presetName}
+          presetNotes={modal.presetNotes}
+          fromIdeaId={modal.fromIdeaId}
+        />
+      )}
+      {modal?.kind === 'contact' && <NewContactModal opportunityId={modal.opportunityId} />}
+      {modal?.kind === 'followup' && (
+        <NewFollowUpModal
+          opportunityId={modal.opportunityId}
+          contactId={modal.contactId}
+          presetTitle={modal.presetTitle}
+        />
+      )}
+      {modal?.kind === 'idea' && <NewIdeaModal />}
+
+      <Toast />
+    </div>
+  );
+}
