@@ -109,6 +109,13 @@ export function Ideas() {
                 {idea.status === 'shelved' && (
                   <button className="lnk" onClick={() => setIdeaStatus(idea.id, 'pending')}>重新激活</button>
                 )}
+                <button
+                  className="lnk lnk-mute"
+                  style={{ marginLeft: 'auto' }}
+                  onClick={() => openModal({ kind: 'idea', editId: idea.id })}
+                >
+                  编辑
+                </button>
               </div>
             </div>
           );

@@ -7,9 +7,24 @@ import {
 import { Avatar, Icon, PriorityChip, Seg, StageDot } from '../components/ui';
 
 export function Opportunities() {
-  const { opportunities, followUps, contacts, oppView, setOppView, openModal, go } = useStore();
+  const { opportunities, followUps, contacts, oppView, setOppView, openModal, go, setStage } = useStore();
   const [fStage, setFStage] = useState<'all' | Stage>('all');
   const [fPri, setFPri] = useState<'all' | Priority>('all');
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [overStage, setOverStage] = useState<Stage | null>(null);
+
+  const endDrag = () => {
+    setDragId(null);
+    setOverStage(null);
+  };
+
+  const handleDrop = (id: string, stage: Stage) => {
+    const opp = opportunities.find((o) => o.id === id);
+    endDrag();
+    if (!opp || opp.stage === stage) return;
+    if (stage === 'won' && !window.confirm(`确认将「${opp.name}」标记为赢单?`)) return;
+    setStage(id, stage);
+  };
 
   const filtered = opportunities.filter(
     (o) =>
@@ -92,7 +107,20 @@ export function Opportunities() {
                 .sort((a, b) => priorityMeta[a.priority].order - priorityMeta[b.priority].order);
               const sum = cards.reduce((s, o) => s + o.amount, 0);
               return (
-                <div className="col" key={stage}>
+                <div
+                  className={`col${overStage === stage ? ' drag-over' : ''}`}
+                  key={stage}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                    if (overStage !== stage) setOverStage(stage);
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    const id = e.dataTransfer.getData('text/plain') || dragId;
+                    if (id) handleDrop(id, stage);
+                  }}
+                >
                   <div className="col-h">
                     <span className={`dot bg-${stageMeta[stage].color}`} />
                     {stageMeta[stage].label}
@@ -102,7 +130,18 @@ export function Opportunities() {
                   {cards.map((o) => {
                     const pc = primaryContact(o);
                     return (
-                      <div className="kcard" key={o.id} onClick={() => go('detail', o.id)}>
+                      <div
+                        className={`kcard${dragId === o.id ? ' dragging' : ''}`}
+                        key={o.id}
+                        onClick={() => go('detail', o.id)}
+                        draggable
+                        onDragStart={(e) => {
+                          e.dataTransfer.setData('text/plain', o.id);
+                          e.dataTransfer.effectAllowed = 'move';
+                          setDragId(o.id);
+                        }}
+                        onDragEnd={endDrag}
+                      >
                         <div className="co">{o.company}</div>
                         <div className="ti">{o.name}</div>
                         <div className="amt num">
@@ -125,7 +164,7 @@ export function Opportunities() {
               );
             })}
           </div>
-          <div className="board-hint">点击卡片进入详情,在详情页可推进阶段(拖拽变更阶段规划于下一迭代)</div>
+          <div className="board-hint">拖拽卡片到目标阶段列即可变更阶段(自动写入时间线);点击卡片进入详情</div>
         </>
       ) : (
         <div className="panel">

@@ -11,10 +11,12 @@ export type Page = 'dashboard' | 'opps' | 'detail' | 'contacts' | 'followups' | 
 
 export type ModalState =
   | null
-  | { kind: 'opp'; presetName?: string; presetNotes?: string; fromIdeaId?: string }
-  | { kind: 'contact'; opportunityId?: string }
-  | { kind: 'followup'; opportunityId?: string; contactId?: string; presetTitle?: string }
-  | { kind: 'idea' };
+  | { kind: 'opp'; editId?: string; presetName?: string; presetNotes?: string; fromIdeaId?: string }
+  | { kind: 'contact'; editId?: string; opportunityId?: string }
+  | { kind: 'followup'; editId?: string; opportunityId?: string; contactId?: string; presetTitle?: string }
+  | { kind: 'idea'; editId?: string }
+  | { kind: 'search' }
+  | { kind: 'complete-followup'; followUpId: string };
 
 export interface ToastState {
   msg: string;
@@ -81,16 +83,24 @@ interface Store {
   clearToast: () => void;
 
   addOpportunity: (input: NewOpportunityInput) => void;
+  updateOpportunity: (id: string, patch: Partial<Pick<Opportunity, 'name' | 'company' | 'amount' | 'priority' | 'winRate' | 'expectedClose' | 'source' | 'tags'>>) => void;
+  deleteOpportunity: (id: string) => void;
   setStage: (id: string, stage: Stage) => void;
   markLost: (id: string, reason: string) => void;
   setOppPriority: (id: string, priority: Priority) => void;
 
   addContact: (input: NewContactInput) => string;
+  updateContact: (id: string, patch: Partial<Pick<Contact, 'name' | 'company' | 'title' | 'role' | 'phone' | 'wechat'>>) => void;
+  deleteContact: (id: string) => void;
   addFollowUp: (input: NewFollowUpInput) => void;
-  completeFollowUp: (id: string) => void;
+  updateFollowUp: (id: string, patch: Partial<Pick<FollowUp, 'title' | 'type' | 'dueAt' | 'priority' | 'opportunityId' | 'contactId'>>) => void;
+  deleteFollowUp: (id: string) => void;
+  completeFollowUp: (id: string, result?: string) => void;
   reopenFollowUp: (id: string) => void;
 
   addIdea: (input: NewIdeaInput) => void;
+  updateIdea: (id: string, patch: Partial<Pick<Idea, 'title' | 'content' | 'priority' | 'opportunityId'>>) => void;
+  deleteIdea: (id: string) => void;
   convertIdeaToFollowUp: (id: string) => void;
   setIdeaStatus: (id: string, status: IdeaStatus) => void;
 
@@ -182,6 +192,39 @@ export const useStore = create<Store>()(
           label: '打开详情',
           run: () => get().go('detail', id),
         });
+      },
+
+      updateOpportunity: (id, patch) => {
+        if (!get().opportunities.some((o) => o.id === id)) return;
+        set((s) => ({
+          opportunities: s.opportunities.map((o) =>
+            o.id === id ? { ...o, ...patch, updatedAt: nowISO() } : o,
+          ),
+        }));
+        get().toast('商机信息已更新');
+      },
+
+      deleteOpportunity: (id) => {
+        const opp = get().opportunities.find((o) => o.id === id);
+        if (!opp) return;
+        set((s) => ({
+          opportunities: s.opportunities.filter((o) => o.id !== id),
+          followUps: s.followUps.filter((f) => f.opportunityId !== id),
+          activities: s.activities.filter((a) => a.opportunityId !== id),
+          ideas: s.ideas.map((i) =>
+            i.opportunityId === id || i.convertedOpportunityId === id
+              ? {
+                  ...i,
+                  opportunityId: i.opportunityId === id ? undefined : i.opportunityId,
+                  convertedOpportunityId:
+                    i.convertedOpportunityId === id ? undefined : i.convertedOpportunityId,
+                }
+              : i,
+          ),
+          page: s.page === 'detail' && s.selectedOppId === id ? 'opps' : s.page,
+          selectedOppId: s.selectedOppId === id ? null : s.selectedOppId,
+        }));
+        get().toast(`商机「${opp.name}」及其跟进已删除`);
       },
 
       setStage: (id, stage) => {
@@ -281,6 +324,35 @@ export const useStore = create<Store>()(
         return id;
       },
 
+      updateContact: (id, patch) => {
+        if (!get().contacts.some((c) => c.id === id)) return;
+        set((s) => ({
+          contacts: s.contacts.map((c) => (c.id === id ? { ...c, ...patch } : c)),
+        }));
+        get().toast('联系人已更新');
+      },
+
+      deleteContact: (id) => {
+        const contact = get().contacts.find((c) => c.id === id);
+        if (!contact) return;
+        set((s) => ({
+          contacts: s.contacts.filter((c) => c.id !== id),
+          opportunities: s.opportunities.map((o) => {
+            if (!o.contactIds.includes(id) && o.primaryContactId !== id) return o;
+            const contactIds = o.contactIds.filter((cid) => cid !== id);
+            return {
+              ...o,
+              contactIds,
+              primaryContactId: o.primaryContactId === id ? contactIds[0] : o.primaryContactId,
+            };
+          }),
+          followUps: s.followUps.map((f) =>
+            f.contactId === id ? { ...f, contactId: undefined } : f,
+          ),
+        }));
+        get().toast(`联系人「${contact.name}」已删除`);
+      },
+
       addFollowUp: (input) => {
         const fu: FollowUp = {
           id: uid(),
@@ -297,12 +369,29 @@ export const useStore = create<Store>()(
         get().toast('跟进项已创建');
       },
 
-      completeFollowUp: (id) => {
+      updateFollowUp: (id, patch) => {
+        if (!get().followUps.some((f) => f.id === id)) return;
+        set((s) => ({
+          followUps: s.followUps.map((f) => (f.id === id ? { ...f, ...patch } : f)),
+        }));
+        get().toast('跟进项已更新');
+      },
+
+      deleteFollowUp: (id) => {
+        if (!get().followUps.some((f) => f.id === id)) return;
+        set((s) => ({ followUps: s.followUps.filter((f) => f.id !== id) }));
+        get().toast('跟进项已删除');
+      },
+
+      completeFollowUp: (id, result) => {
         const fu = get().followUps.find((f) => f.id === id);
         if (!fu || fu.status === 'done') return;
         const now = nowISO();
+        const trimmed = result?.trim() || undefined;
         set((s) => ({
-          followUps: s.followUps.map((f) => (f.id === id ? { ...f, status: 'done', doneAt: now } : f)),
+          followUps: s.followUps.map((f) =>
+            f.id === id ? { ...f, status: 'done', doneAt: now, result: trimmed } : f,
+          ),
           contacts: fu.contactId
             ? s.contacts.map((c) => (c.id === fu.contactId ? { ...c, lastContactAt: now } : c))
             : s.contacts,
@@ -311,21 +400,13 @@ export const useStore = create<Store>()(
                 activity({
                   opportunityId: fu.opportunityId,
                   kind: 'followup_done',
-                  text: `完成跟进(${typeLabel[fu.type]}):${fu.title}`,
+                  text: `完成跟进(${typeLabel[fu.type]}):${fu.title}${trimmed ? ` — ${trimmed}` : ''}`,
                 }),
                 ...s.activities,
               ]
             : s.activities,
         }));
-        get().toast('已完成跟进 · 保持商机总有下一步', {
-          label: '创建下一次跟进',
-          run: () =>
-            get().openModal({
-              kind: 'followup',
-              opportunityId: fu.opportunityId,
-              contactId: fu.contactId,
-            }),
-        });
+        get().toast('已完成跟进');
       },
 
       reopenFollowUp: (id) =>
@@ -354,6 +435,20 @@ export const useStore = create<Store>()(
           ],
         }));
         get().toast('想法已记录,默认进入「待评估」');
+      },
+
+      updateIdea: (id, patch) => {
+        if (!get().ideas.some((i) => i.id === id)) return;
+        set((s) => ({
+          ideas: s.ideas.map((i) => (i.id === id ? { ...i, ...patch } : i)),
+        }));
+        get().toast('想法已更新');
+      },
+
+      deleteIdea: (id) => {
+        if (!get().ideas.some((i) => i.id === id)) return;
+        set((s) => ({ ideas: s.ideas.filter((i) => i.id !== id) }));
+        get().toast('想法已删除');
       },
 
       convertIdeaToFollowUp: (id) => {

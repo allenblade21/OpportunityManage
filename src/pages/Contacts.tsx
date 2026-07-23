@@ -48,7 +48,7 @@ export function Contacts() {
             <thead>
               <tr>
                 <th>姓名</th><th>公司 · 职位</th><th>角色</th><th>电话</th><th>微信</th>
-                <th>关联商机</th><th>最近联系</th>
+                <th>关联商机</th><th>最近联系</th><th>操作</th>
               </tr>
             </thead>
             <tbody>
@@ -90,6 +90,17 @@ export function Contacts() {
                           ? `${fmtWhen(c.lastContactAt, false)} · ${daysSince(c.lastContactAt)} 天未联系`
                           : fmtWhen(c.lastContactAt, false)
                         : '从未联系'}
+                    </td>
+                    <td>
+                      <button
+                        className="lnk"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openModal({ kind: 'contact', editId: c.id });
+                        }}
+                      >
+                        编辑
+                      </button>
                     </td>
                   </tr>
                 );

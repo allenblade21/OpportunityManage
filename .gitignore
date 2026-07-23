@@ -1,5 +1,6 @@
 node_modules/
 dist/
+e2e-artifacts/
 *.local
 .DS_Store
 npm-debug.log*

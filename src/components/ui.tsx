@@ -18,6 +18,7 @@ const ICON_PATHS: Record<string, ReactNode> = {
   clock: (<><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3.2 2" /></>),
   check: (<path d="M4.5 12.5l5 5L19.5 6.5" />),
   more: (<><circle cx="5" cy="12" r="1.4" /><circle cx="12" cy="12" r="1.4" /><circle cx="19" cy="12" r="1.4" /></>),
+  edit: (<><path d="M4 20l1-4L16.5 4.5l3 3L8 19l-4 1z" /><path d="M14 7l3 3" /></>),
   logo: (<path d="M4 19V13M10 19V9M16 19V5M20 19H3" />),
 };
 

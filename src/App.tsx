@@ -3,8 +3,9 @@ import { useStore, type Page } from './store';
 import { groupFollowUps, isActiveStage } from './utils';
 import { Icon } from './components/ui';
 import {
-  NewContactModal, NewFollowUpModal, NewIdeaModal, NewOpportunityModal,
+  CompleteFollowUpModal, ContactModal, FollowUpModal, IdeaModal, OpportunityModal,
 } from './components/modals';
+import { SearchModal } from './components/SearchModal';
 import { Dashboard } from './pages/Dashboard';
 import { Opportunities } from './pages/Opportunities';
 import { OpportunityDetail } from './pages/OpportunityDetail';
@@ -140,7 +141,7 @@ function QuickAdd() {
 }
 
 function Topbar() {
-  const toast = useStore((s) => s.toast);
+  const openModal = useStore((s) => s.openModal);
   const followUps = useStore((s) => s.followUps);
   const overdue = groupFollowUps(followUps).overdue.length;
   const go = useStore((s) => s.go);
@@ -151,8 +152,8 @@ function Topbar() {
         className="search"
         role="button"
         tabIndex={0}
-        onClick={() => toast('全局搜索规划于下一迭代')}
-        onKeyDown={(e) => e.key === 'Enter' && toast('全局搜索规划于下一迭代')}
+        onClick={() => openModal({ kind: 'search' })}
+        onKeyDown={(e) => e.key === 'Enter' && openModal({ kind: 'search' })}
       >
         <Icon name="search" />
         搜索商机、联系人、跟进、想法…
@@ -200,11 +201,35 @@ export default function App() {
   const page = useStore((s) => s.page);
   const modal = useStore((s) => s.modal);
   const contentRef = useRef<HTMLElement>(null);
+  const remindedRef = useRef(false);
 
   useEffect(() => {
     contentRef.current?.scrollTo(0, 0);
     if (window.innerWidth <= 920) window.scrollTo(0, 0);
   }, [page]);
+
+  // ⌘K / Ctrl+K 打开全局搜索
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        useStore.getState().openModal({ kind: 'search' });
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, []);
+
+  // 应用载入时提醒逾期跟进(每次会话一次)
+  useEffect(() => {
+    if (remindedRef.current) return;
+    remindedRef.current = true;
+    const { followUps, toast, go } = useStore.getState();
+    const overdue = groupFollowUps(followUps).overdue.length;
+    if (overdue > 0) {
+      toast(`你有 ${overdue} 条跟进已逾期`, { label: '去处理', run: () => go('followups') });
+    }
+  }, []);
 
   return (
     <div className="app">
@@ -222,21 +247,29 @@ export default function App() {
       </div>
 
       {modal?.kind === 'opp' && (
-        <NewOpportunityModal
+        <OpportunityModal
+          editId={modal.editId}
           presetName={modal.presetName}
           presetNotes={modal.presetNotes}
           fromIdeaId={modal.fromIdeaId}
         />
       )}
-      {modal?.kind === 'contact' && <NewContactModal opportunityId={modal.opportunityId} />}
+      {modal?.kind === 'contact' && (
+        <ContactModal editId={modal.editId} opportunityId={modal.opportunityId} />
+      )}
       {modal?.kind === 'followup' && (
-        <NewFollowUpModal
+        <FollowUpModal
+          editId={modal.editId}
           opportunityId={modal.opportunityId}
           contactId={modal.contactId}
           presetTitle={modal.presetTitle}
         />
       )}
-      {modal?.kind === 'idea' && <NewIdeaModal />}
+      {modal?.kind === 'idea' && <IdeaModal editId={modal.editId} />}
+      {modal?.kind === 'search' && <SearchModal />}
+      {modal?.kind === 'complete-followup' && (
+        <CompleteFollowUpModal key={modal.followUpId} followUpId={modal.followUpId} />
+      )}
 
       <Toast />
     </div>

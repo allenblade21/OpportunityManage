@@ -107,7 +107,7 @@ export function OpportunityDetail() {
                 <button className="btn btn-sm" onClick={onMarkLost}>标记输单</button>
               </>
             )}
-            <button className="btn btn-sm" onClick={() => toast('编辑商机规划于下一迭代')}>编辑</button>
+            <button className="btn btn-sm" onClick={() => openModal({ kind: 'opp', editId: opp.id })}>编辑</button>
           </div>
         </div>
 
