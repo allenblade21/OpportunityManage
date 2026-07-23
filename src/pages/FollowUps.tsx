@@ -1,10 +1,13 @@
+import { useState } from 'react';
 import { useStore } from '../store';
 import { groupFollowUps } from '../utils';
+import { CalendarView } from '../components/Calendar';
 import { FollowUpItem } from '../components/FollowUpItem';
-import { Empty, Icon, Panel } from '../components/ui';
+import { Empty, Icon, Panel, Seg } from '../components/ui';
 
 export function FollowUps() {
   const { followUps, openModal } = useStore();
+  const [view, setView] = useState<'list' | 'calendar'>('list');
   const groups = groupFollowUps(followUps);
   const openCount = groups.overdue.length + groups.today.length + groups.week.length + groups.later.length;
 
@@ -26,12 +29,22 @@ export function FollowUps() {
           {groups.overdue.length > 0 && ` · ${groups.overdue.length} 条已逾期`}
         </span>
         <span className="spacer" />
+        <Seg
+          options={[
+            { key: 'list' as const, label: '列表' },
+            { key: 'calendar' as const, label: '日历' },
+          ]}
+          value={view}
+          onChange={setView}
+        />
         <button className="btn btn-pri" onClick={() => openModal({ kind: 'followup' })}>
           <Icon name="plus" />新建跟进
         </button>
       </div>
 
-      {openCount === 0 && groups.doneToday.length === 0 && (
+      {view === 'calendar' && <CalendarView />}
+
+      {view === 'list' && openCount === 0 && groups.doneToday.length === 0 && (
         <div className="panel">
           <div className="panel-b">
             <Empty
@@ -46,20 +59,21 @@ export function FollowUps() {
         </div>
       )}
 
-      {sections.map(
-        (sec) =>
-          sec.list.length > 0 && (
-            <div className="fgroup" key={sec.key}>
-              <Panel title={sec.title} count={sec.list.length} headClass={sec.headClass}>
-                {sec.list.map((fu) => (
-                  <FollowUpItem key={fu.id} fu={fu} />
-                ))}
-              </Panel>
-            </div>
-          ),
-      )}
+      {view === 'list' &&
+        sections.map(
+          (sec) =>
+            sec.list.length > 0 && (
+              <div className="fgroup" key={sec.key}>
+                <Panel title={sec.title} count={sec.list.length} headClass={sec.headClass}>
+                  {sec.list.map((fu) => (
+                    <FollowUpItem key={fu.id} fu={fu} />
+                  ))}
+                </Panel>
+              </div>
+            ),
+        )}
 
-      {groups.doneToday.length > 0 && (
+      {view === 'list' && groups.doneToday.length > 0 && (
         <div className="fgroup">
           <Panel title="今日已完成" count={groups.doneToday.length}>
             {groups.doneToday.map((fu) => (

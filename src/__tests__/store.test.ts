@@ -182,6 +182,40 @@ describe('级联删除', () => {
   });
 });
 
+describe('数据导入与备份 actions', () => {
+  it('upsertImported:有 ID 更新、新 ID 新增,返回计数', () => {
+    const cur = S().opportunities.find((o) => o.id === 'opp-star')!;
+    const fresh = { ...cur, id: 'opp-new', name: '导入的新商机' };
+    const res = S().upsertImported({
+      opportunities: [{ ...cur, name: '导入改名' }, fresh],
+      contacts: [],
+      followUps: [],
+      ideas: [],
+    });
+    expect(res).toEqual({ added: 1, updated: 1 });
+    expect(S().opportunities.find((o) => o.id === 'opp-star')!.name).toBe('导入改名');
+    expect(S().opportunities.some((o) => o.id === 'opp-new')).toBe(true);
+  });
+
+  it('replaceAllData:整体替换并回到工作台', () => {
+    useStore.setState({ page: 'detail', selectedOppId: 'opp-star' });
+    S().replaceAllData({
+      opportunities: [], contacts: [], followUps: [], ideas: [], activities: [],
+    });
+    expect(S().opportunities).toHaveLength(0);
+    expect(S().followUps).toHaveLength(0);
+    expect(S().page).toBe('dashboard');
+    expect(S().selectedOppId).toBeNull();
+  });
+
+  it('markNotified:合并去重', () => {
+    useStore.setState({ notifiedIds: [] });
+    S().markNotified(['a', 'b']);
+    S().markNotified(['b', 'c']);
+    expect(S().notifiedIds).toEqual(['a', 'b', 'c']);
+  });
+});
+
 describe('编辑跟进 / 联系人 / 想法', () => {
   it('updateFollowUp 修改字段', () => {
     S().updateFollowUp('fu-1', { title: '改标题', priority: 'P0' });

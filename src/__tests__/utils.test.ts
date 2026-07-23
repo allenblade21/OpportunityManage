@@ -1,7 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import type { FollowUp } from '../types';
 import {
-  fmtWan, fmtWhen, groupFollowUps, isOverdue, quarterStart, sortFollowUps, stageMeta,
+  buildCalendarDays, dueForNotify, fmtWan, fmtWhen, groupFollowUps, isOverdue,
+  quarterStart, sortFollowUps, stageMeta, ymd,
 } from '../utils';
 
 beforeAll(() => {
@@ -99,6 +100,40 @@ describe('sortFollowUps 排序:优先级 → 截止时间', () => {
     const b = fu({ id: 'b', priority: 'P0', dueAt: '2026-07-25T10:00:00' });
     const c = fu({ id: 'c', priority: 'P2', dueAt: '2026-07-22T12:00:00' });
     expect(sortFollowUps([a, b, c]).map((f) => f.id)).toEqual(['b', 'c', 'a']);
+  });
+});
+
+describe('buildCalendarDays 月历网格', () => {
+  it('42 天、周一开头、覆盖整月首尾', () => {
+    const days = buildCalendarDays(new Date(2026, 6, 1)); // 2026-07,7月1日是周三
+    expect(days).toHaveLength(42);
+    expect(days[0].getDay()).toBe(1);
+    expect(ymd(days[0])).toBe('2026-06-29');
+    expect(days.some((d) => ymd(d) === '2026-07-01')).toBe(true);
+    expect(days.some((d) => ymd(d) === '2026-07-31')).toBe(true);
+  });
+
+  it('1 号恰为周一时从当日开始', () => {
+    const days = buildCalendarDays(new Date(2026, 5, 1)); // 2026-06-01 是周一
+    expect(ymd(days[0])).toBe('2026-06-01');
+  });
+});
+
+describe('dueForNotify 通知判定', () => {
+  const now = new Date('2026-07-22T10:00:00').getTime();
+
+  it('15 分钟提醒窗口内或已逾期的待办需要通知', () => {
+    const soon = fu({ id: 'soon', dueAt: '2026-07-22T10:10:00' });
+    const far = fu({ id: 'far', dueAt: '2026-07-22T10:20:00' });
+    const overdue = fu({ id: 'over', dueAt: '2026-07-22T09:00:00' });
+    const done = fu({ id: 'done', dueAt: '2026-07-22T09:00:00', status: 'done' });
+    const ids = dueForNotify([soon, far, overdue, done], [], now).map((f) => f.id);
+    expect(ids.sort()).toEqual(['over', 'soon']);
+  });
+
+  it('已通知过的不重复通知', () => {
+    const overdue = fu({ id: 'over', dueAt: '2026-07-22T09:00:00' });
+    expect(dueForNotify([overdue], ['over'], now)).toHaveLength(0);
   });
 });
 

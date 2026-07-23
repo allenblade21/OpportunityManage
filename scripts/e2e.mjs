@@ -42,7 +42,7 @@ async function waitServer() {
 const browser = await chromium.launch({ executablePath: EXEC });
 try {
   await waitServer();
-  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, acceptDownloads: true });
 
   const consoleErrors = [];
   page.on('pageerror', (e) => consoleErrors.push(`pageerror: ${e.message}`));
@@ -51,6 +51,21 @@ try {
   });
   // confirm 一律接受;prompt 输入输单原因
   page.on('dialog', (d) => d.accept(d.type() === 'prompt' ? '竞品价格更低' : undefined));
+  // Notification 桩:记录通知调用,权限视为已授予
+  await page.addInitScript(() => {
+    window.__notifs = [];
+    class FakeNotification {
+      static permission = 'granted';
+      static requestPermission() {
+        return Promise.resolve('granted');
+      }
+      constructor(title, options) {
+        window.__notifs.push({ title, options });
+        this.close = () => {};
+      }
+    }
+    window.Notification = FakeNotification;
+  });
 
   /* 1. 工作台加载 + 逾期提醒 Toast */
   await page.goto(BASE, { waitUntil: 'networkidle' });
@@ -176,13 +191,57 @@ try {
   const ideasAfter = await page.locator('.icard').count();
   assert('删除想法后卡片减少', ideasAfter === ideasBefore - 1, `${ideasBefore} -> ${ideasAfter}`);
 
-  /* 10. 控制台无报错 */
+  /* 10. 日历视图:渲染、今日高亮、点击条目编辑 */
+  await page.click('nav.nav a:has-text("跟进项")');
+  await page.click('.seg button:has-text("日历")');
+  await page.waitForSelector('.cal-grid');
+  assert('日历渲染 42 个日格', (await page.locator('.cal-cell').count()) === 42);
+  assert('今日日格高亮', (await page.locator('.cal-cell.today').count()) === 1);
+  assert('日历上有跟进条目', (await page.locator('.cal-chip').count()) >= 1);
+  await page.screenshot({ path: `${OUT}/7-calendar.png` });
+  await page.locator('.cal-chip').first().click();
+  await page.waitForSelector('.modal:has-text("编辑跟进")');
+  assert('点击日历条目打开编辑', true);
+  await page.click('.m-f .btn:has-text("取消")');
+
+  /* 11. 到期通知:开启铃铛后,逾期跟进立即触发通知(桩记录) */
+  await page.click('.bell');
+  await page.waitForTimeout(500);
+  const notifCount = await page.evaluate(() => window.__notifs.length);
+  assert('开启通知后收到到期提醒', notifCount >= 1, `got ${notifCount}`);
+  const bellOn = await page.locator('.bell.bell-on').count();
+  assert('铃铛显示开启状态', bellOn === 1);
+
+  /* 12. 设置弹窗:导出 Excel / JSON(捕获下载) */
+  await page.click('.side-foot a:has-text("设置")');
+  await page.waitForSelector('.modal:has-text("数据管理")');
+  const dlExcel = page.waitForEvent('download');
+  await page.click('button:has-text("导出 Excel")');
+  const excelFile = await dlExcel;
+  assert('导出 Excel 文件名为 .xlsx', excelFile.suggestedFilename().endsWith('.xlsx'), excelFile.suggestedFilename());
+  const excelPath = `${OUT}/export.xlsx`;
+  await excelFile.saveAs(excelPath);
+
+  const dlJson = page.waitForEvent('download');
+  await page.click('button:has-text("导出 JSON 备份")');
+  const jsonFile = await dlJson;
+  assert('导出 JSON 文件名为 .json', jsonFile.suggestedFilename().endsWith('.json'), jsonFile.suggestedFilename());
+
+  /* 13. 导入回灌:把刚导出的 Excel 再导入 → 全部按 ID 更新 */
+  await page.setInputFiles('[data-testid="import-input"]', excelPath);
+  await page.waitForSelector('.toast.show:has-text("Excel 导入完成")', { timeout: 8000 });
+  const importToast = await page.locator('.toast.show').innerText();
+  assert('导入回灌全部识别为更新(新增 0)', importToast.includes('新增 0'), importToast);
+  await page.screenshot({ path: `${OUT}/8-settings.png` });
+  await page.click('.m-f .btn:has-text("关闭")');
+
+  /* 14. 控制台无报错 */
   assert('无控制台错误', consoleErrors.length === 0, consoleErrors.slice(0, 3).join(' | '));
 
   await page.emulateMedia({ colorScheme: 'dark' });
-  await page.click('nav.nav a:has-text("工作台")');
+  await page.click('nav.nav a:has-text("跟进项")');
   await page.waitForTimeout(300);
-  await page.screenshot({ path: `${OUT}/6-dashboard-dark.png` });
+  await page.screenshot({ path: `${OUT}/6-calendar-dark.png` });
 } finally {
   await browser.close();
   server.kill();

@@ -6,6 +6,8 @@ import {
   CompleteFollowUpModal, ContactModal, FollowUpModal, IdeaModal, OpportunityModal,
 } from './components/modals';
 import { SearchModal } from './components/SearchModal';
+import { SettingsModal } from './components/SettingsModal';
+import { runNotifyCheck, toggleNotifications } from './lib/notify';
 import { Dashboard } from './pages/Dashboard';
 import { Opportunities } from './pages/Opportunities';
 import { OpportunityDetail } from './pages/OpportunityDetail';
@@ -22,7 +24,7 @@ const NAV: { page: Page; icon: string; label: string }[] = [
 ];
 
 function Sidebar() {
-  const { page, go, opportunities, contacts, followUps, ideas, toast, resetDemoData } = useStore();
+  const { page, go, opportunities, contacts, followUps, ideas, openModal } = useStore();
 
   const counts: Record<string, number> = {
     opps: opportunities.filter((o) => isActiveStage(o.stage)).length,
@@ -66,19 +68,10 @@ function Sidebar() {
             href="#"
             onClick={(e) => {
               e.preventDefault();
-              toast('设置页(自定义阶段 / 标签 / 提醒规则)规划于 V1');
+              openModal({ kind: 'settings' });
             }}
           >
             <Icon name="gear" />设置
-          </a>
-          <a
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              if (window.confirm('将清空当前数据并恢复演示数据,确定?')) resetDemoData();
-            }}
-          >
-            <Icon name="more" />重置演示数据
           </a>
         </nav>
         <div className="user">
@@ -143,6 +136,7 @@ function QuickAdd() {
 function Topbar() {
   const openModal = useStore((s) => s.openModal);
   const followUps = useStore((s) => s.followUps);
+  const notifyEnabled = useStore((s) => s.notifyEnabled);
   const overdue = groupFollowUps(followUps).overdue.length;
   const go = useStore((s) => s.go);
 
@@ -165,6 +159,14 @@ function Topbar() {
           {overdue} 条逾期跟进
         </button>
       )}
+      <button
+        className={`btn btn-ic bell${notifyEnabled ? ' bell-on' : ''}`}
+        onClick={() => void toggleNotifications()}
+        aria-label={notifyEnabled ? '关闭到期通知' : '开启到期通知'}
+        title={notifyEnabled ? '到期通知已开启(截止前 15 分钟提醒)' : '开启到期通知'}
+      >
+        <Icon name="bell" />
+      </button>
       <QuickAdd />
     </header>
   );
@@ -231,6 +233,15 @@ export default function App() {
     }
   }, []);
 
+  // 到期通知调度:开启后立即检查一轮,此后每 30 秒一轮
+  const notifyEnabled = useStore((s) => s.notifyEnabled);
+  useEffect(() => {
+    if (!notifyEnabled) return;
+    runNotifyCheck();
+    const timer = setInterval(runNotifyCheck, 30_000);
+    return () => clearInterval(timer);
+  }, [notifyEnabled]);
+
   return (
     <div className="app">
       <Sidebar />
@@ -263,10 +274,12 @@ export default function App() {
           opportunityId={modal.opportunityId}
           contactId={modal.contactId}
           presetTitle={modal.presetTitle}
+          presetDate={modal.presetDate}
         />
       )}
       {modal?.kind === 'idea' && <IdeaModal editId={modal.editId} />}
       {modal?.kind === 'search' && <SearchModal />}
+      {modal?.kind === 'settings' && <SettingsModal />}
       {modal?.kind === 'complete-followup' && (
         <CompleteFollowUpModal key={modal.followUpId} followUpId={modal.followUpId} />
       )}

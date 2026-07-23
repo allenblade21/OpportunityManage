@@ -19,6 +19,8 @@ const ICON_PATHS: Record<string, ReactNode> = {
   check: (<path d="M4.5 12.5l5 5L19.5 6.5" />),
   more: (<><circle cx="5" cy="12" r="1.4" /><circle cx="12" cy="12" r="1.4" /><circle cx="19" cy="12" r="1.4" /></>),
   edit: (<><path d="M4 20l1-4L16.5 4.5l3 3L8 19l-4 1z" /><path d="M14 7l3 3" /></>),
+  bell: (<><path d="M6 8.5a6 6 0 0 1 12 0c0 5 2 6.3 2 6.3H4s2-1.3 2-6.3z" /><path d="M10.2 20a2 2 0 0 0 3.6 0" /></>),
+  cal: (<><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 9.5h18M8 3v4M16 3v4" /></>),
   logo: (<path d="M4 19V13M10 19V9M16 19V5M20 19H3" />),
 };
 

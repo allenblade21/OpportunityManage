@@ -132,6 +132,39 @@ export function groupFollowUps(all: FollowUp[]): FollowUpGroups {
   return g;
 }
 
+/* ---------- 日历 ---------- */
+
+/** 以周一开头的 6×7 月历网格(42 天,覆盖整月) */
+export function buildCalendarDays(monthStart: Date): Date[] {
+  const first = new Date(monthStart.getFullYear(), monthStart.getMonth(), 1);
+  const mondayOffset = (first.getDay() + 6) % 7; // 周一=0
+  const start = new Date(first);
+  start.setDate(1 - mondayOffset);
+  return Array.from({ length: 42 }, (_, i) => {
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    return d;
+  });
+}
+
+export const ymd = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+
+/* ---------- 到期通知 ---------- */
+
+/** 截止前 15 分钟开始提醒 */
+export const NOTIFY_AHEAD_MS = 15 * 60 * 1000;
+
+/** 需要发送通知的跟进:待办、进入提醒窗口(或已逾期)、且未通知过 */
+export function dueForNotify(followUps: FollowUp[], notifiedIds: string[], now: number): FollowUp[] {
+  const notified = new Set(notifiedIds);
+  return followUps.filter(
+    (f) =>
+      f.status === 'open' &&
+      !notified.has(f.id) &&
+      new Date(f.dueAt).getTime() <= now + NOTIFY_AHEAD_MS,
+  );
+}
+
 /* ---------- 其他 ---------- */
 
 export const WEEKDAYS = ['日', '一', '二', '三', '四', '五', '六'];

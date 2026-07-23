@@ -179,9 +179,9 @@ function defaultDue(): { date: string; time: string } {
 }
 
 export function FollowUpModal({
-  editId, opportunityId, contactId, presetTitle,
+  editId, opportunityId, contactId, presetTitle, presetDate,
 }: {
-  editId?: string; opportunityId?: string; contactId?: string; presetTitle?: string;
+  editId?: string; opportunityId?: string; contactId?: string; presetTitle?: string; presetDate?: string;
 }) {
   const {
     openModal, addFollowUp, updateFollowUp, deleteFollowUp, toast, opportunities, contacts, followUps,
@@ -191,7 +191,7 @@ export function FollowUpModal({
 
   const [title, setTitle] = useState(editing?.title ?? presetTitle ?? '');
   const [type, setType] = useState<FollowUpType>(editing?.type ?? 'call');
-  const [date, setDate] = useState(editing ? toDatePart(editing.dueAt) : def.date);
+  const [date, setDate] = useState(editing ? toDatePart(editing.dueAt) : presetDate ?? def.date);
   const [time, setTime] = useState(editing ? toTimePart(editing.dueAt) : def.time);
   const [priority, setPriority] = useState<Priority>(editing?.priority ?? 'P2');
   const [oppId, setOppId] = useState(editing?.opportunityId ?? opportunityId ?? '');

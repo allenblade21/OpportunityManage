@@ -13,10 +13,20 @@ export type ModalState =
   | null
   | { kind: 'opp'; editId?: string; presetName?: string; presetNotes?: string; fromIdeaId?: string }
   | { kind: 'contact'; editId?: string; opportunityId?: string }
-  | { kind: 'followup'; editId?: string; opportunityId?: string; contactId?: string; presetTitle?: string }
+  | { kind: 'followup'; editId?: string; opportunityId?: string; contactId?: string; presetTitle?: string; presetDate?: string }
   | { kind: 'idea'; editId?: string }
   | { kind: 'search' }
-  | { kind: 'complete-followup'; followUpId: string };
+  | { kind: 'complete-followup'; followUpId: string }
+  | { kind: 'settings' };
+
+/** 导入/备份的数据包(时间线仅 JSON 备份包含) */
+export interface DataBundle {
+  opportunities: Opportunity[];
+  contacts: Contact[];
+  followUps: FollowUp[];
+  ideas: Idea[];
+  activities?: Activity[];
+}
 
 export interface ToastState {
   msg: string;
@@ -76,6 +86,17 @@ interface Store {
   modal: ModalState;
   toastState: ToastState | null;
 
+  /** 到期通知开关与已通知记录(均持久化) */
+  notifyEnabled: boolean;
+  notifiedIds: string[];
+  setNotifyEnabled: (v: boolean) => void;
+  markNotified: (ids: string[]) => void;
+
+  /** JSON 备份恢复:整体替换 */
+  replaceAllData: (bundle: DataBundle) => void;
+  /** Excel 导入:按 ID upsert,返回计数 */
+  upsertImported: (bundle: DataBundle) => { added: number; updated: number };
+
   go: (page: Page, oppId?: string) => void;
   setOppView: (v: 'board' | 'list') => void;
   openModal: (m: ModalState) => void;
@@ -123,6 +144,53 @@ export const useStore = create<Store>()(
       selectedOppId: null,
       modal: null,
       toastState: null,
+
+      notifyEnabled: false,
+      notifiedIds: [],
+      setNotifyEnabled: (v) => set({ notifyEnabled: v }),
+      markNotified: (ids) =>
+        set((s) => ({
+          notifiedIds: [...new Set([...s.notifiedIds, ...ids])].slice(-500),
+        })),
+
+      replaceAllData: (bundle) => {
+        set({
+          opportunities: bundle.opportunities,
+          contacts: bundle.contacts,
+          followUps: bundle.followUps,
+          ideas: bundle.ideas,
+          activities: bundle.activities ?? [],
+          page: 'dashboard',
+          selectedOppId: null,
+        });
+        get().toast('数据已恢复');
+      },
+
+      upsertImported: (bundle) => {
+        let added = 0;
+        let updated = 0;
+        const merge = <T extends { id: string }>(cur: T[], inc: T[]): T[] => {
+          const map = new Map(cur.map((x) => [x.id, x]));
+          for (const item of inc) {
+            const prev = map.get(item.id);
+            if (prev) {
+              map.set(item.id, { ...prev, ...item });
+              updated++;
+            } else {
+              map.set(item.id, item);
+              added++;
+            }
+          }
+          return [...map.values()];
+        };
+        set((s) => ({
+          opportunities: merge(s.opportunities, bundle.opportunities),
+          contacts: merge(s.contacts, bundle.contacts),
+          followUps: merge(s.followUps, bundle.followUps),
+          ideas: merge(s.ideas, bundle.ideas),
+        }));
+        return { added, updated };
+      },
 
       go: (page, oppId) =>
         set((s) => ({ page, selectedOppId: oppId !== undefined ? oppId : s.selectedOppId })),
@@ -509,6 +577,8 @@ export const useStore = create<Store>()(
         followUps: s.followUps,
         ideas: s.ideas,
         activities: s.activities,
+        notifyEnabled: s.notifyEnabled,
+        notifiedIds: s.notifiedIds,
       }),
     },
   ),
