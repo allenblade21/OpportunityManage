@@ -18,12 +18,15 @@
 
 ```bash
 npm install
-npm run dev       # 开发模式,默认 http://localhost:5173
-npm run build     # 类型检查 + 生产构建(输出 dist/)
-npm run preview   # 预览生产构建
-npm test          # Vitest 单元测试(store 联动规则 + 工具函数)
-npm run e2e       # E2E 冒烟测试(需先 build;自起 preview + Chromium 走核心路径)
+npm run dev            # 开发模式,默认 http://localhost:5173
+npm run build          # 类型检查 + 生产构建(输出 dist/)
+npm run preview        # 预览生产构建
+npm run build:single   # 单文件版 dist-single/single.html,双击即开,便于分发试用
+npm test               # Vitest 单元测试(store 联动规则 + 工具函数)
+npm run e2e            # E2E 冒烟测试(需先 build;自起 preview + Chromium 走核心路径)
 ```
+
+**在线测试链接(GitHub Pages):** 仓库已内置部署工作流([`.github/workflows/pages.yml`](.github/workflows/pages.yml)),在 GitHub 仓库 **Settings → Pages → Source 选择「GitHub Actions」** 开启一次后,每次推送自动部署,访问地址为 `https://<用户名>.github.io/OpportunityManage/`。若部署被环境保护规则拦截,在 Settings → Environments → github-pages 中允许当前分支即可。
 
 **已实现:**
 

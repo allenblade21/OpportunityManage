@@ -4,3 +4,4 @@ e2e-artifacts/
 *.local
 .DS_Store
 npm-debug.log*
+dist-single/
