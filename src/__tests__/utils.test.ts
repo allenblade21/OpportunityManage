@@ -145,3 +145,56 @@ describe('stageMeta 阶段默认赢率', () => {
     expect(stageMeta.lost.defWin).toBe(0);
   });
 });
+
+/* ================= 边界用例 ================= */
+
+describe('边界:金额极值', () => {
+  it('0 与刚好不足万元', () => {
+    expect(fmtWan(0)).toBe('¥0');
+    expect(fmtWan(9999)).toBe('¥9,999');
+  });
+  it('超大金额保留一位小数', () => {
+    expect(fmtWan(123456789)).toBe('¥12345.7万');
+  });
+});
+
+describe('边界:跟进分组时刻临界', () => {
+  it('空列表返回全空分组', () => {
+    const g = groupFollowUps([]);
+    expect(g.overdue).toEqual([]);
+    expect(g.today).toEqual([]);
+    expect(g.week).toEqual([]);
+    expect(g.later).toEqual([]);
+    expect(g.doneToday).toEqual([]);
+  });
+  it('今天 23:59 归今天,次日 00:00 归本周', () => {
+    const g = groupFollowUps([
+      fu({ id: 'edge-today', dueAt: '2026-07-22T23:59:00' }),
+      fu({ id: 'edge-week', dueAt: '2026-07-23T00:00:00' }),
+    ]);
+    expect(g.today.map((f) => f.id)).toEqual(['edge-today']);
+    expect(g.week.map((f) => f.id)).toEqual(['edge-week']);
+  });
+});
+
+describe('边界:日历特殊月份', () => {
+  it('非闰年 2 月且 1 号恰为周一(2027-02)', () => {
+    const days = buildCalendarDays(new Date(2027, 1, 1));
+    expect(days).toHaveLength(42);
+    expect(ymd(days[0])).toBe('2027-02-01');
+    expect(days.some((d) => ymd(d) === '2027-02-28')).toBe(true);
+  });
+  it('12 月网格跨年包含次年 1 月', () => {
+    const days = buildCalendarDays(new Date(2026, 11, 1));
+    expect(days.some((d) => ymd(d) === '2027-01-01')).toBe(true);
+  });
+});
+
+describe('边界:季度起点', () => {
+  it('季度首月、季度末日、跨季首日', () => {
+    expect(quarterStart(new Date(2026, 0, 15)).getMonth()).toBe(0);
+    expect(quarterStart(new Date(2026, 2, 31)).getMonth()).toBe(0);
+    expect(quarterStart(new Date(2026, 3, 1)).getMonth()).toBe(3);
+    expect(quarterStart(new Date(2026, 11, 31)).getMonth()).toBe(9);
+  });
+});

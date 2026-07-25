@@ -4,7 +4,7 @@
  * 运行:npm run e2e
  */
 import { spawn } from 'node:child_process';
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { chromium } from 'playwright-core';
 
 const PORT = 4574;
@@ -235,7 +235,128 @@ try {
   await page.screenshot({ path: `${OUT}/8-settings.png` });
   await page.click('.m-f .btn:has-text("关闭")');
 
-  /* 14. 控制台无报错 */
+  /* 15. 边界:必填校验(空表单保存被拦截) */
+  await page.click('.qwrap .btn-pri');
+  await page.click('.qmenu button:has-text("新建商机")');
+  await page.waitForSelector('.modal:has-text("新建商机")');
+  await page.click('.m-f .btn-pri');
+  assert(
+    '空必填保存被拦截并提示',
+    (await page.locator('.toast.show:has-text("请填写商机名称与客户公司")').count()) === 1,
+  );
+  assert('校验失败时弹窗不关闭', (await page.locator('.modal').count()) === 1);
+  await page.click('.m-f .btn:has-text("取消")');
+
+  /* 16. 边界:搜索无结果与 Esc 关闭 */
+  await page.keyboard.press('Control+k');
+  await page.waitForSelector('.search-modal');
+  await page.fill('.sr-input input', 'zzz不存在的关键词');
+  await page.waitForTimeout(200);
+  assert('搜索无结果提示', (await page.locator('.sr-hint:has-text("没有找到")').count()) === 1);
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(200);
+  assert('Esc 关闭搜索', (await page.locator('.search-modal').count()) === 0);
+
+  /* 17. 边界:完成跟进但不创建下一次 */
+  await page.click('nav.nav a:has-text("跟进项")');
+  await page.click('.seg button:has-text("列表")');
+  await page.waitForSelector('.fgroup');
+  await page.locator('.fu:not(.done) .check').first().click();
+  await page.waitForSelector('.modal:has-text("完成跟进")');
+  await page.locator('.chk-row input').uncheck();
+  await page.click('.m-f .btn-pri');
+  await page.waitForTimeout(400);
+  assert('未勾选时不打开新建跟进', (await page.locator('.modal').count()) === 0);
+  assert('完成项进入今日已完成分组', (await page.locator('.panel-h:has-text("今日已完成")').count()) === 1);
+
+  /* 18. 边界:拖拽到赢单列(确认框自动接受) */
+  await page.click('nav.nav a:has-text("商机")');
+  await page.waitForSelector('.board .col');
+  await page.evaluate(() => {
+    const card = [...document.querySelectorAll('.kcard')].find((c) =>
+      c.textContent.includes('在线课堂平台定制'),
+    );
+    const col = [...document.querySelectorAll('.col')].find((c) =>
+      c.querySelector('.col-h')?.textContent.includes('赢单'),
+    );
+    if (!card || !col) return;
+    const dt = new DataTransfer();
+    card.dispatchEvent(new DragEvent('dragstart', { bubbles: true, dataTransfer: dt }));
+    col.dispatchEvent(new DragEvent('dragover', { bubbles: true, cancelable: true, dataTransfer: dt }));
+    col.dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: dt }));
+    card.dispatchEvent(new DragEvent('dragend', { bubbles: true, dataTransfer: dt }));
+  });
+  await page.waitForTimeout(400);
+  assert(
+    '拖入赢单列后卡片显示已赢单',
+    (await page.locator('.kcard:has-text("在线课堂平台定制") .chip:has-text("已赢单")').count()) === 1,
+  );
+
+  /* 19. 边界:导入损坏的 Excel 文件 */
+  writeFileSync(`${OUT}/bad.xlsx`, 'this is definitely not an excel file');
+  await page.click('.side-foot a:has-text("设置")');
+  await page.waitForSelector('.modal:has-text("数据管理")');
+  await page.setInputFiles('[data-testid="import-input"]', `${OUT}/bad.xlsx`);
+  await page.waitForSelector('.toast.show:has-text("导入失败")', { timeout: 8000 });
+  assert('损坏文件导入报错且不崩溃', true);
+
+  /* 20. JSON 备份恢复闭环 */
+  const dlJson2 = page.waitForEvent('download');
+  await page.click('button:has-text("导出 JSON 备份")');
+  const jsonPath = `${OUT}/backup.json`;
+  await (await dlJson2).saveAs(jsonPath);
+  await page.setInputFiles('[data-testid="import-input"]', jsonPath);
+  await page.waitForSelector('.toast.show:has-text("数据已恢复")', { timeout: 8000 });
+  assert('JSON 备份导入恢复成功', true);
+
+  /* 21. 边界:通知重载后不重复(已通知记录持久化) */
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.waitForSelector('.kpis .kpi');
+  await page.waitForTimeout(700);
+  const notifAfterReload = await page.evaluate(() => window.__notifs.length);
+  assert('重载后不重复通知', notifAfterReload === 0, `got ${notifAfterReload}`);
+
+  /* 22. 移动端视口冒烟 */
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.waitForTimeout(300);
+  assert('窄屏下导航仍完整(5 项)', (await page.locator('nav.nav a[href]').count()) >= 5);
+  await page.screenshot({ path: `${OUT}/9-mobile.png` });
+  await page.setViewportSize({ width: 1440, height: 900 });
+
+  /* 23. 存储迁移:旧 localStorage → IndexedDB(独立 origin 127.0.0.1) */
+  const ctx2 = await browser.newContext();
+  const p2 = await ctx2.newPage();
+  await p2.addInitScript(() => {
+    const marker = {
+      id: 'mig-1', name: '迁移测试商机', company: '旧数据公司', amount: 120000,
+      stage: 'lead', priority: 'P2', winRate: 10, tags: [], contactIds: [],
+      owner: '我', createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z',
+    };
+    const state = {
+      opportunities: [marker], contacts: [], followUps: [], ideas: [], activities: [],
+      notifyEnabled: false, notifiedIds: [],
+    };
+    localStorage.setItem('jihui-store-v1', JSON.stringify({ state, version: 0 }));
+  });
+  await p2.goto(`http://127.0.0.1:${PORT}/`, { waitUntil: 'networkidle' });
+  await p2.waitForSelector('.kpis .kpi');
+  await p2.click('nav.nav a:has-text("商机")');
+  await p2.waitForSelector('.board .col');
+  assert(
+    '旧 localStorage 数据完成迁移并展示',
+    (await p2.locator('.kcard:has-text("迁移测试商机")').count()) === 1,
+  );
+  await p2.evaluate(() => localStorage.removeItem('jihui-store-v1'));
+  await p2.reload({ waitUntil: 'networkidle' });
+  await p2.click('nav.nav a:has-text("商机")');
+  await p2.waitForSelector('.board .col');
+  assert(
+    '清除 localStorage 后数据仍在(已入 IndexedDB)',
+    (await p2.locator('.kcard:has-text("迁移测试商机")').count()) === 1,
+  );
+  await ctx2.close();
+
+  /* 24. 控制台无报错 */
   assert('无控制台错误', consoleErrors.length === 0, consoleErrors.slice(0, 3).join(' | '));
 
   await page.emulateMedia({ colorScheme: 'dark' });

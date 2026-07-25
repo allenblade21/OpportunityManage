@@ -106,7 +106,8 @@ export function SettingsModal() {
       </div>
 
       <div className="set-sec full set-about">
-        机汇 OpportunityManage v0.3 · 本地单机版,数据仅存于当前浏览器(localStorage)
+        机汇 OpportunityManage v0.4 · 本地单机版,数据存于当前浏览器 IndexedDB(旧版
+        localStorage 数据首次打开时自动迁移)
       </div>
     </Modal>
   );

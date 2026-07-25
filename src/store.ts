@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
+import { appStorage } from './lib/storage';
 import { buildSeed } from './seed';
 import type {
   Activity, Contact, ContactRole, FollowUp, FollowUpType, Idea, IdeaStatus,
@@ -200,6 +201,7 @@ export const useStore = create<Store>()(
       clearToast: () => set({ toastState: null }),
 
       addOpportunity: (input) => {
+        if (!input.name.trim() || !input.company.trim()) return;
         const now = nowISO();
         const id = uid();
         let contactIds: string[] = [];
@@ -329,6 +331,8 @@ export const useStore = create<Store>()(
       },
 
       markLost: (id, reason) => {
+        reason = reason.trim();
+        if (!reason) return;
         const opp = get().opportunities.find((o) => o.id === id);
         if (!opp || opp.stage === 'won' || opp.stage === 'lost') return;
         const now = nowISO();
@@ -354,6 +358,7 @@ export const useStore = create<Store>()(
         })),
 
       addContact: (input) => {
+        if (!input.name.trim() || !input.company.trim()) return '';
         const id = uid();
         const contact: Contact = {
           id,
@@ -422,6 +427,7 @@ export const useStore = create<Store>()(
       },
 
       addFollowUp: (input) => {
+        if (!input.title.trim()) return;
         const fu: FollowUp = {
           id: uid(),
           title: input.title,
@@ -485,6 +491,7 @@ export const useStore = create<Store>()(
         })),
 
       addIdea: (input) => {
+        if (!input.title.trim()) return;
         const idea: Idea = {
           id: uid(),
           title: input.title,
@@ -521,7 +528,7 @@ export const useStore = create<Store>()(
 
       convertIdeaToFollowUp: (id) => {
         const idea = get().ideas.find((i) => i.id === id);
-        if (!idea) return;
+        if (!idea || idea.status === 'adopted') return; // 已采纳的不重复转化
         const due = new Date();
         due.setDate(due.getDate() + 3);
         due.setHours(18, 0, 0, 0);
@@ -570,7 +577,8 @@ export const useStore = create<Store>()(
     }),
     {
       name: 'jihui-store-v1',
-      storage: createJSONStorage(() => localStorage),
+      // IndexedDB 优先,自动迁移旧 localStorage 数据,不可用时逐级降级
+      storage: createJSONStorage(() => appStorage),
       partialize: (s) => ({
         opportunities: s.opportunities,
         contacts: s.contacts,

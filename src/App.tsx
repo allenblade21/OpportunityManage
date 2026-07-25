@@ -199,7 +199,7 @@ function Toast() {
   );
 }
 
-export default function App() {
+function Shell() {
   const page = useStore((s) => s.page);
   const modal = useStore((s) => s.modal);
   const contentRef = useRef<HTMLElement>(null);
@@ -287,4 +287,27 @@ export default function App() {
       <Toast />
     </div>
   );
+}
+
+/** 等待异步存储(IndexedDB)恢复完成后再渲染,避免种子数据闪现 */
+export default function App() {
+  const [hydrated, setHydrated] = useState(() => useStore.persist.hasHydrated());
+
+  useEffect(() => {
+    const unsub = useStore.persist.onFinishHydration(() => setHydrated(true));
+    if (useStore.persist.hasHydrated()) setHydrated(true);
+    return unsub;
+  }, []);
+
+  if (!hydrated) {
+    return (
+      <div className="boot" aria-label="加载中">
+        <span className="boot-mark">
+          <Icon name="logo" style={{ stroke: '#6FD0B4', width: 22, height: 22 }} />
+        </span>
+        机汇
+      </div>
+    );
+  }
+  return <Shell />;
 }

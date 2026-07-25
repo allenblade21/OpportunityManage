@@ -102,7 +102,7 @@ export function rowToOpp(r: Row): Opportunity | null {
     id: str(r['ID']) || uid(),
     name,
     company,
-    amount: num(r['预计金额(元)']),
+    amount: Math.max(0, num(r['预计金额(元)'])),
     stage: parseStage(r['阶段']),
     priority: parsePriority(r['优先级']),
     winRate: Math.min(100, Math.max(0, num(r['赢率%']))),
@@ -252,5 +252,11 @@ export function downloadExcel(data: DataBundle): void {
 }
 
 export function parseExcel(buf: ArrayBuffer): DataBundle {
-  return fromWorkbook(XLSX.read(buf, { type: 'array' }));
+  const wb = XLSX.read(buf, { type: 'array' });
+  // 防御:任意文本可能被当作 CSV 静默解析成 Sheet1,导致"成功导入 0 条"的误导
+  const known = Object.values(SHEETS);
+  if (!wb.SheetNames.some((n) => known.includes(n))) {
+    throw new Error('未找到机汇的数据工作表(商机/联系人/跟进项/想法)');
+  }
+  return fromWorkbook(wb);
 }

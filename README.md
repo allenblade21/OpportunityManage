@@ -11,6 +11,7 @@
 | [`docs/design.md`](docs/design.md) | 产品设计方案:定位、数据模型、优先级体系、信息架构、技术选型与迭代路线 |
 | [`docs/workflows.md`](docs/workflows.md) | 核心流转与流程图:商机阶段状态机、跟进闭环、想法流转、页面导航、数据联动规则 |
 | [`docs/ui-design.md`](docs/ui-design.md) | UI 设计规范:Design Tokens、字体排版、组件规范、页面规格、响应式与深色模式 |
+| [`docs/test-plan.md`](docs/test-plan.md) | 测试方案与用例:30 条功能用例 + 26 条边界/异常用例,标注自动化映射 |
 | [`prototype/index.html`](prototype/index.html) | 可交互高保真 UI 原型(单文件,浏览器直接打开) |
 | [`src/`](src/) | MVP 应用源码(React 18 + TypeScript + Vite + zustand) |
 
@@ -39,9 +40,9 @@ npm run e2e            # E2E 冒烟测试(需先 build;自起 preview + Chromium
 - **浏览器到期通知**:顶栏铃铛开启,跟进截止前 15 分钟(或已逾期)弹桌面通知,每条一次,点通知回到跟进页
 - **数据导入导出(设置弹窗)**:Excel 四工作表导出,修改后可再导入(按 ID 更新、无 ID 新增);JSON 无损备份与整体恢复
 - 工作台实时聚合(KPI、加权在途金额、阶段漏斗、今日/逾期跟进、高优先级商机、最近动态)
-- 深色模式、响应式、localStorage 持久化(内置演示数据,设置中可重置)
+- 深色模式、响应式、**IndexedDB 持久化**(旧版 localStorage 数据自动迁移;不可用时逐级降级 localStorage → 内存;内置演示数据,设置中可重置)
 
-**测试:** 43 个单元测试覆盖阶段流转/闭环联动/想法转化/级联删除/Excel 与 JSON 往返/通知判定/日历网格等业务规则;`scripts/e2e.mjs` 覆盖拖拽、搜索、编辑、闭环、输单、日历、通知(桩)、导出下载与导入回灌等 24 项端到端断言。
+**测试(方案见 [docs/test-plan.md](docs/test-plan.md)):** 76 个单元测试(流转联动、级联删除、Excel/JSON 往返、通知去重、IndexedDB 迁移、金额/日期/日历边界等)+ 37 项 E2E 断言(拖拽、闭环、搜索、导出下载、导入回灌、坏文件防御、存储迁移、通知重载去重、移动端视口等),全部通过。
 
 **规划中(见 [迭代路线](docs/design.md#9-迭代路线)):** 自定义阶段与标签、统计报表、多用户后端(Node + Prisma + SQLite)。
 

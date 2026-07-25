@@ -216,6 +216,87 @@ describe('数据导入与备份 actions', () => {
   });
 });
 
+describe('边界防御', () => {
+  it('空必填被 store 层拒绝(四类对象)', () => {
+    const before = {
+      opps: S().opportunities.length,
+      contacts: S().contacts.length,
+      fus: S().followUps.length,
+      ideas: S().ideas.length,
+    };
+    S().addOpportunity({ name: '  ', company: 'X', amount: 0, stage: 'lead', priority: 'P2', tags: [] });
+    S().addOpportunity({ name: 'X', company: '', amount: 0, stage: 'lead', priority: 'P2', tags: [] });
+    expect(S().addContact({ name: '', company: 'X', role: 'decision' })).toBe('');
+    S().addFollowUp({ title: '   ', type: 'call', dueAt: new Date().toISOString(), priority: 'P2' });
+    S().addIdea({ title: '' });
+    expect(S().opportunities.length).toBe(before.opps);
+    expect(S().contacts.length).toBe(before.contacts);
+    expect(S().followUps.length).toBe(before.fus);
+    expect(S().ideas.length).toBe(before.ideas);
+  });
+
+  it('输单原因为空白时不执行', () => {
+    S().markLost('opp-th', '   ');
+    expect(S().opportunities.find((o) => o.id === 'opp-th')!.stage).toBe('lead');
+  });
+
+  it('已采纳想法不能重复转化', () => {
+    S().convertIdeaToFollowUp('id-5');
+    const firstFuId = S().ideas.find((i) => i.id === 'id-5')!.convertedFollowUpId;
+    const count = S().followUps.length;
+    S().convertIdeaToFollowUp('id-5');
+    expect(S().followUps.length).toBe(count);
+    expect(S().ideas.find((i) => i.id === 'id-5')!.convertedFollowUpId).toBe(firstFuId);
+  });
+
+  it('对不存在 ID 的操作安全无副作用', () => {
+    const snapshot = JSON.stringify({
+      o: S().opportunities, f: S().followUps, c: S().contacts, i: S().ideas,
+    });
+    S().completeFollowUp('ghost');
+    S().setStage('ghost', 'won');
+    S().deleteOpportunity('ghost');
+    S().deleteContact('ghost');
+    S().updateIdea('ghost', { title: 'x' });
+    expect(JSON.stringify({
+      o: S().opportunities, f: S().followUps, c: S().contacts, i: S().ideas,
+    })).toBe(snapshot);
+  });
+
+  it('删除商机唯一联系人后主要联系人为空', () => {
+    S().deleteContact('ct-zp');
+    const opp = S().opportunities.find((o) => o.id === 'opp-hx')!;
+    expect(opp.contactIds).toEqual([]);
+    expect(opp.primaryContactId).toBeUndefined();
+  });
+
+  it('新建商机时复用同名同公司的既有联系人', () => {
+    const before = S().contacts.length;
+    S().addOpportunity({
+      name: '二期扩展', company: '星辰科技', amount: 100000,
+      stage: 'lead', priority: 'P2', tags: [], contactName: '张伟明',
+    });
+    expect(S().contacts.length).toBe(before);
+    const opp = S().opportunities.find((o) => o.name === '二期扩展')!;
+    expect(opp.primaryContactId).toBe('ct-zwm');
+  });
+
+  it('upsertImported 空数据包返回 {0,0}', () => {
+    expect(
+      S().upsertImported({ opportunities: [], contacts: [], followUps: [], ideas: [] }),
+    ).toEqual({ added: 0, updated: 0 });
+  });
+
+  it('markNotified 超过 500 条时截断保留最新', () => {
+    useStore.setState({ notifiedIds: [] });
+    S().markNotified(Array.from({ length: 600 }, (_, i) => `n${i}`));
+    const ids = S().notifiedIds;
+    expect(ids).toHaveLength(500);
+    expect(ids[0]).toBe('n100');
+    expect(ids[499]).toBe('n599');
+  });
+});
+
 describe('编辑跟进 / 联系人 / 想法', () => {
   it('updateFollowUp 修改字段', () => {
     S().updateFollowUp('fu-1', { title: '改标题', priority: 'P0' });

@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import * as XLSX from 'xlsx';
 import { jsonBackup, parseJsonBackup } from '../lib/backup';
-import { fromWorkbook, rowToContact, rowToFu, rowToIdea, rowToOpp, toWorkbook } from '../lib/excel';
+import {
+  fromWorkbook, parseExcel, rowToContact, rowToFu, rowToIdea, rowToOpp, toWorkbook,
+} from '../lib/excel';
 import { buildSeed } from '../seed';
 
 describe('Excel 工作簿往返', () => {
@@ -69,6 +71,54 @@ describe('行映射容错', () => {
     expect(byDate.expectedClose).toBeTruthy();
     const byIso = rowToFu({ 跟进事项: 'T', 截止时间: '2026-08-15T10:00:00.000Z' })!;
     expect(byIso.dueAt).toBe('2026-08-15T10:00:00.000Z');
+  });
+});
+
+describe('导入边界', () => {
+  it('空数据集往返为空数组(不崩溃)', () => {
+    const empty = { opportunities: [], contacts: [], followUps: [], ideas: [] };
+    const buf = XLSX.write(toWorkbook(empty), { type: 'array', bookType: 'xlsx' }) as ArrayBuffer;
+    const parsed = fromWorkbook(XLSX.read(buf, { type: 'array' }));
+    expect(parsed.opportunities).toEqual([]);
+    expect(parsed.contacts).toEqual([]);
+    expect(parsed.followUps).toEqual([]);
+    expect(parsed.ideas).toEqual([]);
+  });
+
+  it('缺少部分工作表时其余为空数组', () => {
+    const seed = buildSeed();
+    const wb = XLSX.utils.book_new();
+    const full = toWorkbook(seed);
+    XLSX.utils.book_append_sheet(wb, full.Sheets['商机'], '商机');
+    const parsed = fromWorkbook(wb);
+    expect(parsed.opportunities).toHaveLength(seed.opportunities.length);
+    expect(parsed.contacts).toEqual([]);
+    expect(parsed.followUps).toEqual([]);
+  });
+
+  it('金额负值钳制为 0,赢率超界钳制到 0-100', () => {
+    const opp = rowToOpp({ 商机名称: 'X', 客户公司: 'Y', '预计金额(元)': '-500', '赢率%': -20 })!;
+    expect(opp.amount).toBe(0);
+    expect(opp.winRate).toBe(0);
+  });
+
+  it('含换行/逗号/引号的字段经二进制往返无损', () => {
+    const seed = buildSeed();
+    const tricky = '第一行\n第二行, 含"引号"与,中文逗号';
+    seed.contacts[0] = { ...seed.contacts[0], notes: tricky };
+    const buf = XLSX.write(toWorkbook(seed), { type: 'array', bookType: 'xlsx' }) as ArrayBuffer;
+    const parsed = fromWorkbook(XLSX.read(buf, { type: 'array' }));
+    expect(parsed.contacts.find((c) => c.id === seed.contacts[0].id)!.notes).toBe(tricky);
+  });
+
+  it('未知的多余列被忽略', () => {
+    const opp = rowToOpp({ 商机名称: 'X', 客户公司: 'Y', 神秘列: '???', 另一列: 123 })!;
+    expect(opp.name).toBe('X');
+  });
+
+  it('非机汇文件(纯文本被解析为 CSV)明确抛错,而非静默导入 0 条', () => {
+    const textBuf = new TextEncoder().encode('this,is,plain,text\n1,2,3,4').buffer;
+    expect(() => parseExcel(textBuf as ArrayBuffer)).toThrow();
   });
 });
 
