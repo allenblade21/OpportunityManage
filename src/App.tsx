@@ -14,6 +14,7 @@ import { OpportunityDetail } from './pages/OpportunityDetail';
 import { Contacts } from './pages/Contacts';
 import { FollowUps } from './pages/FollowUps';
 import { Ideas } from './pages/Ideas';
+import { Reports } from './pages/Reports';
 
 const NAV: { page: Page; icon: string; label: string }[] = [
   { page: 'dashboard', icon: 'home', label: '工作台' },
@@ -21,6 +22,7 @@ const NAV: { page: Page; icon: string; label: string }[] = [
   { page: 'contacts', icon: 'users', label: '联系人' },
   { page: 'followups', icon: 'check2', label: '跟进项' },
   { page: 'ideas', icon: 'bulb', label: '想法' },
+  { page: 'reports', icon: 'trend', label: '统计' },
 ];
 
 function Sidebar() {
@@ -254,6 +256,7 @@ function Shell() {
           {page === 'contacts' && <Contacts />}
           {page === 'followups' && <FollowUps />}
           {page === 'ideas' && <Ideas />}
+          {page === 'reports' && <Reports />}
         </main>
       </div>
 

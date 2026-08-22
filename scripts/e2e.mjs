@@ -323,6 +323,29 @@ try {
   await page.screenshot({ path: `${OUT}/9-mobile.png` });
   await page.setViewportSize({ width: 1440, height: 900 });
 
+  /* 23a. 统计报表页 */
+  await page.click('nav.nav a:has-text("统计")');
+  await page.waitForSelector('.kpis6 .kpi');
+  assert('统计页渲染 6 个指标瓦片', (await page.locator('.kpis6 .kpi').count()) === 6);
+  assert('趋势与活跃度柱状图渲染', (await page.locator('.colchart').count()) === 2);
+  assert(
+    '输单原因分布包含流程中写入的原因',
+    (await page.locator('.fr:has-text("竞品价格更低")').count()) === 1,
+  );
+  assert('来源分析表格有数据', (await page.locator('.rtable tbody tr').count()) >= 2);
+  await page.locator('.seg button:has-text("全部")').click();
+  await page.waitForTimeout(200);
+  assert('切换统计周期后指标正常', (await page.locator('.kpis6 .kpi').count()) === 6);
+  await page.screenshot({ path: `${OUT}/10-reports.png` });
+
+  /* 23b. 商机标签筛选 */
+  await page.click('nav.nav a:has-text("商机")');
+  await page.waitForSelector('.board .col');
+  await page.selectOption('[data-testid="tag-filter"]', 'ERP');
+  await page.waitForTimeout(200);
+  assert('按标签 ERP 筛选后仅剩 1 张卡片', (await page.locator('.kcard').count()) === 1);
+  await page.selectOption('[data-testid="tag-filter"]', 'all');
+
   /* 23. 存储迁移:旧 localStorage → IndexedDB(独立 origin 127.0.0.1) */
   const ctx2 = await browser.newContext();
   const p2 = await ctx2.newPage();

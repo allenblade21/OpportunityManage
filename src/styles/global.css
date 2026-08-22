@@ -307,6 +307,22 @@ td.stale { color: var(--danger); font-weight: 600; font-family: ui-monospace, "S
 /* ---------- 跟进分组 ---------- */
 .fgroup { margin-bottom: 14px; }
 
+/* ---------- 统计报表 ---------- */
+.kpis6 { display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px; margin-bottom: 14px; }
+.colchart { display: flex; align-items: flex-end; gap: 10px; height: 150px; border-bottom: 1px solid var(--line); padding: 6px 4px 0; }
+.colbar { flex: 1; min-width: 0; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px; }
+.colbar .cv { font-size: 11px; color: var(--ink-2); }
+.colbar .cb { width: 100%; max-width: 38px; border-radius: 4px 4px 0 0; transition: filter .12s; }
+.colbar .cb.zero { background: var(--line-strong); }
+.colbar:hover .cb { filter: brightness(1.12); }
+.collabels { display: flex; gap: 10px; padding: 5px 4px 4px; }
+.collabels span { flex: 1; text-align: center; font-size: 11px; color: var(--ink-3); min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.bg-muted { background: var(--p3); }
+.fr.fr-wide { grid-template-columns: 110px 1fr 64px; }
+.fr .fl { overflow: hidden; text-overflow: ellipsis; }
+.rtable th, .rtable td { padding: 9px 12px; }
+.rtable tbody tr:hover { background: transparent; }
+
 /* ---------- 快速新建菜单 ---------- */
 .qwrap { position: relative; }
 .qmenu { position: absolute; right: 0; top: calc(100% + 6px); background: var(--card); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 10px 30px rgba(0, 0, 0, .16); padding: 6px; z-index: 40; min-width: 150px; display: flex; flex-direction: column; }
@@ -421,12 +437,14 @@ td.stale { color: var(--danger); font-weight: 600; font-family: ui-monospace, "S
   .topbar { padding: 0 14px; }
   .search { flex: 1; }
   .kpis { grid-template-columns: 1fr 1fr; }
+  .kpis6 { grid-template-columns: repeat(3, 1fr); }
   .grid2, .grid2b, .dgrid { grid-template-columns: 1fr; }
   .facts { grid-template-columns: repeat(3, 1fr); }
   .step { font-size: 11px; }
 }
 @media (max-width: 560px) {
   .facts { grid-template-columns: repeat(2, 1fr); }
+  .kpis6 { grid-template-columns: 1fr 1fr; }
   .m-b { grid-template-columns: 1fr; }
   .phead h1 { font-size: 18px; }
 }

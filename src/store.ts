@@ -8,7 +8,7 @@ import type {
 } from './types';
 import { nowISO, stageMeta, typeLabel, uid, fmtWan } from './utils';
 
-export type Page = 'dashboard' | 'opps' | 'detail' | 'contacts' | 'followups' | 'ideas';
+export type Page = 'dashboard' | 'opps' | 'detail' | 'contacts' | 'followups' | 'ideas' | 'reports';
 
 export type ModalState =
   | null

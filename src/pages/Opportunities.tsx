@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useStore } from '../store';
 import type { Opportunity, Priority, Stage } from '../types';
 import {
@@ -10,8 +10,14 @@ export function Opportunities() {
   const { opportunities, followUps, contacts, oppView, setOppView, openModal, go, setStage } = useStore();
   const [fStage, setFStage] = useState<'all' | Stage>('all');
   const [fPri, setFPri] = useState<'all' | Priority>('all');
+  const [fTag, setFTag] = useState<'all' | string>('all');
   const [dragId, setDragId] = useState<string | null>(null);
   const [overStage, setOverStage] = useState<Stage | null>(null);
+
+  const allTags = useMemo(
+    () => [...new Set(opportunities.flatMap((o) => o.tags))].sort(),
+    [opportunities],
+  );
 
   const endDrag = () => {
     setDragId(null);
@@ -29,7 +35,8 @@ export function Opportunities() {
   const filtered = opportunities.filter(
     (o) =>
       (fStage === 'all' ? o.stage !== 'lost' : o.stage === fStage) &&
-      (fPri === 'all' || o.priority === fPri),
+      (fPri === 'all' || o.priority === fPri) &&
+      (fTag === 'all' || o.tags.includes(fTag)),
   );
 
   const activeSum = opportunities
@@ -91,6 +98,17 @@ export function Opportunities() {
           <option value="all">全部优先级</option>
           {PRIORITIES.map((p) => (
             <option key={p} value={p}>{priorityMeta[p].full}</option>
+          ))}
+        </select>
+        <select
+          className="sel"
+          value={fTag}
+          onChange={(e) => setFTag(e.target.value)}
+          data-testid="tag-filter"
+        >
+          <option value="all">全部标签</option>
+          {allTags.map((t) => (
+            <option key={t} value={t}>{t}</option>
           ))}
         </select>
         <button className="btn btn-pri" onClick={() => openModal({ kind: 'opp' })}>
