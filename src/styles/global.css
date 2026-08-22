@@ -109,7 +109,8 @@ a { color: inherit; text-decoration: none; }
 
 .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 .topbar { height: 56px; flex: none; display: flex; align-items: center; gap: 12px; padding: 0 24px; background: var(--card); border-bottom: 1px solid var(--line); }
-.search { flex: 0 1 400px; display: flex; align-items: center; gap: 8px; background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; color: var(--ink-3); font-size: 13px; cursor: pointer; }
+.search { flex: 0 1 400px; min-width: 0; display: flex; align-items: center; gap: 8px; background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; color: var(--ink-3); font-size: 13px; cursor: pointer; }
+.search-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .search .kbd { margin-left: auto; font-size: 11px; border: 1px solid var(--line-strong); border-radius: 4px; padding: 0 5px; background: var(--card); color: var(--ink-3); }
 .topspace { flex: 1; }
 .overdue-pill { border: none; background: var(--p0-bg); color: var(--p0); font-size: 12.5px; font-weight: 600; border-radius: 99px; padding: 5px 12px; cursor: pointer; }
@@ -445,6 +446,9 @@ td.stale { color: var(--danger); font-weight: 600; font-family: ui-monospace, "S
 @media (max-width: 560px) {
   .facts { grid-template-columns: repeat(2, 1fr); }
   .kpis6 { grid-template-columns: 1fr 1fr; }
+  .search { flex: 0 0 auto; padding: 7px 9px; }
+  .search-text, .search .kbd { display: none; }
+  .topbar { gap: 8px; }
   .m-b { grid-template-columns: 1fr; }
   .phead h1 { font-size: 18px; }
 }

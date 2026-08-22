@@ -152,7 +152,7 @@ function Topbar() {
         onKeyDown={(e) => e.key === 'Enter' && openModal({ kind: 'search' })}
       >
         <Icon name="search" />
-        搜索商机、联系人、跟进、想法…
+        <span className="search-text">搜索商机、联系人、跟进、想法…</span>
         <span className="kbd">⌘K</span>
       </div>
       <div className="topspace" />
