@@ -42,8 +42,36 @@ export function parseJsonBackup(text: string): Required<DataBundle> {
   };
 }
 
-/** 触发浏览器下载:必须先挂载到 DOM,否则部分环境忽略 download 文件名 */
-export function triggerDownload(blob: Blob, filename: string): void {
+export interface SaveOutcome {
+  ok: boolean;
+  /** declined = 用户在宿主确认框里拒绝(无需再提示);unsupported = 该环境无法保存此文件 */
+  reason?: 'declined' | 'unsupported';
+}
+
+interface HostDownloads {
+  save: (req: { filename: string; data: Blob }) => Promise<{ status: string }>;
+}
+
+/**
+ * 触发文件保存:
+ * - 发布为 Claude 预览页时,页面自触发的下载被沙盒拦截,改走宿主的
+ *   downloads 能力(带用户确认;扩展名有白名单,.xlsx 不在其中)
+ * - 普通网页环境走 <a download>(必须先挂载到 DOM,否则部分环境忽略文件名)
+ */
+export async function triggerDownload(blob: Blob, filename: string): Promise<SaveOutcome> {
+  const host = (window as { claude?: { use?: (name: string) => Promise<HostDownloads | null> } }).claude;
+  if (typeof host?.use === 'function') {
+    try {
+      const downloads = await host.use('downloads');
+      if (!downloads) return { ok: false, reason: 'unsupported' };
+      await downloads.save({ filename, data: blob });
+      return { ok: true };
+    } catch (err) {
+      const code = (err as { code?: string } | null)?.code;
+      if (code === 'declined' || code === 'rate_limited') return { ok: false, reason: 'declined' };
+      return { ok: false, reason: 'unsupported' };
+    }
+  }
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = filename;
@@ -51,10 +79,11 @@ export function triggerDownload(blob: Blob, filename: string): void {
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  return { ok: true };
 }
 
-export function downloadJson(data: Required<DataBundle>): void {
+export function downloadJson(data: Required<DataBundle>): Promise<SaveOutcome> {
   const blob = new Blob([jsonBackup(data)], { type: 'application/json' });
   // 文件名用 ASCII:部分环境(headless、跨语言文件系统、老压缩工具)对中文名支持不佳
-  triggerDownload(blob, `jihui-backup-${fileStamp()}.json`);
+  return triggerDownload(blob, `jihui-backup-${fileStamp()}.json`);
 }

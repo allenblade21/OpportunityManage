@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { downloadJson, parseJsonBackup } from '../lib/backup';
+import { downloadJson, parseJsonBackup, type SaveOutcome } from '../lib/backup';
 import { toggleNotifications } from '../lib/notify';
 import { useStore } from '../store';
 import { Icon, Modal } from './ui';
@@ -15,10 +15,23 @@ export function SettingsModal() {
   const close = () => openModal(null);
   const bundle = () => ({ opportunities, contacts, followUps, ideas, activities });
 
+  const afterSave = (r: SaveOutcome, kind: 'excel' | 'json') => {
+    if (r.ok || r.reason === 'declined') return; // 用户主动拒绝无需再提示
+    toast(
+      kind === 'excel'
+        ? '当前预览环境不支持保存 .xlsx,请改用「导出 JSON 备份」,或在部署版/单文件版中导出 Excel'
+        : '当前环境不支持文件保存',
+    );
+  };
+
   // xlsx 体积较大,按需异步加载,避免进入首屏包
   const exportExcel = async () => {
     const { downloadExcel } = await import('../lib/excel');
-    downloadExcel(bundle());
+    afterSave(await downloadExcel(bundle()), 'excel');
+  };
+
+  const exportJson = async () => {
+    afterSave(await downloadJson(bundle()), 'json');
   };
 
   const onImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -73,7 +86,7 @@ export function SettingsModal() {
         </div>
         <div className="set-actions">
           <button className="btn btn-sm" onClick={() => void exportExcel()}>导出 Excel</button>
-          <button className="btn btn-sm" onClick={() => downloadJson(bundle())}>导出 JSON 备份</button>
+          <button className="btn btn-sm" onClick={() => void exportJson()}>导出 JSON 备份</button>
           <button className="btn btn-sm" onClick={() => fileRef.current?.click()}>
             导入数据(.xlsx / .json)
           </button>

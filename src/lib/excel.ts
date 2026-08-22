@@ -4,7 +4,7 @@
  * - JSON:带版本号的无损备份(含时间线),恢复时整体替换
  */
 import * as XLSX from 'xlsx';
-import { fileStamp, triggerDownload } from './backup';
+import { fileStamp, triggerDownload, type SaveOutcome } from './backup';
 import type { DataBundle } from '../store';
 import type {
   Contact, ContactRole, FollowUp, FollowUpStatus, FollowUpType, Idea, IdeaStatus,
@@ -243,12 +243,12 @@ export function fromWorkbook(wb: XLSX.WorkBook): DataBundle {
   };
 }
 
-export function downloadExcel(data: DataBundle): void {
+export function downloadExcel(data: DataBundle): Promise<SaveOutcome> {
   const out = XLSX.write(toWorkbook(data), { type: 'array', bookType: 'xlsx' }) as ArrayBuffer;
   const blob = new Blob([out], {
     type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   });
-  triggerDownload(blob, `jihui-data-${fileStamp()}.xlsx`);
+  return triggerDownload(blob, `jihui-data-${fileStamp()}.xlsx`);
 }
 
 export function parseExcel(buf: ArrayBuffer): DataBundle {
