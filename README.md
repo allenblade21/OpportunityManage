@@ -11,7 +11,10 @@
 | [`docs/design.md`](docs/design.md) | 产品设计方案:定位、数据模型、优先级体系、信息架构、技术选型与迭代路线 |
 | [`docs/workflows.md`](docs/workflows.md) | 核心流转与流程图:商机阶段状态机、跟进闭环、想法流转、页面导航、数据联动规则 |
 | [`docs/ui-design.md`](docs/ui-design.md) | UI 设计规范:Design Tokens、字体排版、组件规范、页面规格、响应式与深色模式 |
-| [`docs/test-plan.md`](docs/test-plan.md) | 测试方案与用例:30 条功能用例 + 26 条边界/异常用例,标注自动化映射 |
+| [`docs/test-plan.md`](docs/test-plan.md) | 测试方案与用例:33 条功能用例 + 29 条边界/异常用例,标注自动化映射 |
+| [`docs/user-manual.md`](docs/user-manual.md) | 用户手册:BytePlus 云部署指南(TOS+CDN / ECS+Nginx / 容器)+ 功能使用手册 + FAQ |
+| [`docs/requirements.md`](docs/requirements.md) | 需求汇总:R-01~33 功能需求状态与验证映射、非功能需求、Backlog |
+| [`deploy/`](deploy/) | 部署资产:Nginx 配置与多阶段构建 Dockerfile |
 | [`prototype/index.html`](prototype/index.html) | 可交互高保真 UI 原型(单文件,浏览器直接打开) |
 | [`src/`](src/) | MVP 应用源码(React 18 + TypeScript + Vite + zustand) |
 
